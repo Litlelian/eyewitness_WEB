@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import PlayerGrid from "../components/PlayerGrid";
 import RoomControls from "../components/RoomControls";
@@ -8,49 +8,71 @@ export default function RoomPage() {
   const { id } = useParams(); // 從 URL 獲取房間 ID
   const location = useLocation(); // 從 navigate 獲取 state
   const navigate = useNavigate();
-  const playerName = location.state?.playerName?.trim() || "匿名玩家";
+  const playerName = location.state?.playerName?.trim() || "匿名玩家"; // 傳入的玩家名稱
   const [playerID, setPlayerID] = useState(null); // 當前玩家 ID
-  const [players, setPlayers] = useState([
-    { id: "0", name: "玩家1", slot: 0 },
-    { id: "1", name: "玩家2", slot: 1 },
-    { id: "2", name: "玩家3", slot: 2 },
-    { id: "3", name: "玩家4", slot: 3 },
-    { id: "4", name: "玩家5", slot: 4 },
-  ]); // 靜態模擬玩家數據
-  const [hostID, setHostID] = useState("0"); // 靜態模擬房主
-  const [maxPlayers, setMaxPlayers] = useState(6); // 預設最大玩家數
-  const [level, setLevel] = useState(3); // 預設遊戲等級
+  const [players, setPlayers] = useState([]); // 從 API 初始化
+  const [hostID, setHostID] = useState(null); // 房主 ID
+  const [maxPlayers, setMaxPlayers] = useState(6); // 從 API 初始化
+  const [level, setLevel] = useState(3); // 從 API 初始化
   const [error, setError] = useState(null); // 錯誤訊息
-  const [hasJoined, setHasJoined] = useState(false); // 標記是否已加入
+  const [isLoading, setIsLoading] = useState(true); // 標記 API 載入狀態
 
-  // 模擬玩家加入邏輯
+  const hasJoinedRef = useRef(false);
+
+  // 初始化房間資訊並嘗試加入玩家
   useEffect(() => {
-    // 生成唯一 playerID（模擬，實際應從資料庫或伺服器生成）
-    const newPlayerID = String(players.length);
-    setPlayerID(newPlayerID);
+    const joinRoom = async () => {
+      try {
+        if (hasJoinedRef.current) return;
+        hasJoinedRef.current = true;
 
-    // 檢查房間是否已滿
-    if (players.length >= maxPlayers) {
-      if (hasJoined) return;
-      setError("房間已滿，無法加入！");
-      alert("房間已滿，無法加入！");
-      navigate("/"); // 返回 Lobby
-      return;
-    }
+        // 嘗試獲取房間資訊
+        const getResponse = await fetch(`http://localhost:8001/api/rooms/${id}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        const getData = await getResponse.json();
 
-    // 檢查是否已加入（避免重複）
-    if (!players.some((p) => p.name === playerName)) {
-      setPlayers((prevPlayers) => [
-        ...prevPlayers,
-        {
-          id: newPlayerID,
-          name: playerName,
-          slot: prevPlayers.length,
-        },
-      ]);
-      setHasJoined(true); // 標記已加入
-    }
-  }, [playerName, maxPlayers, navigate, players.length]);
+        // 生成唯一 playerID（模擬，實際可使用 UUID
+        const newPlayerID = getData.players.length;
+        setPlayerID(newPlayerID);
+
+        // 無論房間是否存在，直接嘗試加入玩家
+        const postResponse = await fetch(`http://localhost:8001/api/rooms/${id}/addPlayers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: String(newPlayerID),
+            name: playerName,
+            slot: getData.exists ? getData.players.length : 0,
+          }),
+        });
+
+        if (!postResponse.ok) {
+          const errorData = await postResponse.json();
+          setError(errorData.error || "加入房間失敗");
+          alert(errorData.error || "加入房間失敗");
+          navigate("/"); // 返回 Lobby
+          return;
+        }
+
+        // 更新前端狀態
+        const postData = await postResponse.json();
+        setPlayers(postData.players || []);
+        setMaxPlayers(postData.maxPlayers || 6);
+        setLevel(postData.gameLevel || 3);
+        setHostID(postData.players.length > 0 ? postData.players[0].slot : null);
+      } catch (err) {
+        console.error("加入房間失敗:", err);
+        setError("無法加入房間，請稍後重試");
+        alert("無法加入房間，請稍後重試");
+        navigate("/"); // 返回 Lobby
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    joinRoom();
+  }, [id, playerName, navigate]);
 
   // 改變最大玩家數
   const handleChangeMaxPlayers = (num) => {
@@ -76,22 +98,53 @@ export default function RoomPage() {
       alert(`目前玩家數 (${players.length}) 超過最大玩家數 (${maxPlayers})`);
       return;
     }
-    console.log(players);
     alert("遊戲開始！（靜態模擬）");
   };
 
   // 離開房間（靜態模擬）
-  const handleLeaveRoom = () => {
-    navigate("/");
-    alert("已離開房間！");
+  const handleLeaveRoom = async () => {
+    if (!playerID) return;
+    try {
+      await fetch(`http://localhost:8001/api/rooms/${id}/leave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerID }),
+      });
+    } catch (err) {
+      console.error("離開房間失敗:", err);
+    } finally {
+      navigate("/");
+    }
   };
 
-  const isHost = true; // 靜態模擬房主（可根據需求調整）
+  // 瀏覽器關閉或刷新時，自動離開房間
+  useEffect(() => {
+  const handleBeforeUnload = () => {
+    if (!playerID) return;
+
+    const url = `http://localhost:8001/api/rooms/${id}/leave`;
+    const data = JSON.stringify({ playerID });
+
+    navigator.sendBeacon(url, data);
+  };
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+  };
+}, [id, playerID]);
+
+  const isHost = playerID === hostID; // 檢查是否為房主
+
+  if (isLoading) {
+    return <div className="room-page">載入房間中...</div>;
+  }
 
   return (
     <div className="room-page">
       <h1>🃏 房間 {id}</h1>
-      <p>玩家名稱：{playerName} 已加入</p>
+      <p>玩家名稱：{playerName}</p>
+      {error && <p className="error">{error}</p>}
 
       {/* 顯示玩家格子 */}
       <PlayerGrid players={players} maxPlayers={maxPlayers} hostID={hostID} />

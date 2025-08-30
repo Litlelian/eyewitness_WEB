@@ -12,7 +12,7 @@ const PlayerGrid = ({ players, maxPlayers, hostID }) => {
       >
         {player ? (
           <>
-            {player.id === hostID && <span className="host-label">房主</span>}
+            {player.slot === hostID && <span className="host-label">房主</span>}
             <span className="player-name">{player.name}</span>
           </>
         ) : (
