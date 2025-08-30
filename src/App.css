@@ -1,0 +1,13 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  background-image: url('assets/wood_background.jpg'); /* 設定背景圖片 */
+  background-repeat: no-repeat;               /* 水平與垂直都重複 */
+  background-size: cover;
+  background-position: center;
+}

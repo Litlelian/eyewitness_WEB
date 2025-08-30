@@ -1,0 +1,47 @@
+.room-controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-group label {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.control-select {
+  padding: 5px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.control-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.start-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.start-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.leave-button {
+  background-color: #dc3545;
+  color: white;
+}

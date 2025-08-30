@@ -1,0 +1,42 @@
+.player-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.player-grid-item {
+  width: 100px;
+  height: 100px;
+  border: 2px solid #333;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.player-grid-item.occupied {
+  background-color: #e0f7fa;
+}
+
+.player-grid-item.empty {
+  background-color: #f5f5f5;
+}
+
+.host-label {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  color: red;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.player-name {
+  font-size: 14px;
+}
+
+.empty-slot {
+  font-size: 14px;
+  color: #666;
+}
