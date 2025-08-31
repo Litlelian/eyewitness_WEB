@@ -28,7 +28,7 @@ router.get("/:id", (req, res) => {
 // API: 添加新玩家到房間
 router.post("/:id/addPlayers", (req, res) => {
   const { id } = req.params;
-  console.log("Room", id)
+  console.log("Leave Room", id)
   const { id: playerID, name, slot } = req.body;
 
   // 驗證請求資料
@@ -80,7 +80,6 @@ router.post("/:id/leave", (req, res) => {
   if (!room) {
     return res.status(404).json({ error: `房間 ${id} 不存在` });
   }
-
   const playerIndex = room.players.findIndex((p) => p.id === playerID);
   if (playerIndex === -1) {
     return res.status(404).json({ error: `玩家 ${playerID} 不存在於房間 ${id}` });
@@ -88,6 +87,10 @@ router.post("/:id/leave", (req, res) => {
 
   const removedPlayer = room.players.splice(playerIndex, 1)[0];
   console.log(`玩家 ${removedPlayer.name} (${removedPlayer.id}) 離開房間 ${id}`);
+
+  room.players.forEach((p, index) => {
+    p.slot = index;
+  });
 
   if (room.players.length === 0) {
     console.log(`房間 ${id} 已空，刪除`);
@@ -100,10 +103,6 @@ router.post("/:id/leave", (req, res) => {
       gamePlaying: false,
     });
   }
-
-  room.players.forEach((p, index) => {
-    p.slot = index;
-  });
 
   res.json({
     exists: true,

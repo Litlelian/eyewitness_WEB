@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import PlayerGrid from "../components/PlayerGrid";
@@ -19,8 +20,19 @@ export default function RoomPage() {
 
   const hasJoinedRef = useRef(false);
 
+  useEffect(() => {
+    console.log(`before 玩家ID = ${playerID}`);
+    if (!playerID) {
+      const newID = uuidv4(); // 生成唯一 ID
+      setPlayerID(newID);
+      console.log(`玩家ID = ${playerID}`);
+    }
+  }, [playerID]);
+
   // 初始化房間資訊並嘗試加入玩家
   useEffect(() => {
+    if(!playerID) return;
+
     const joinRoom = async () => {
       try {
         if (hasJoinedRef.current) return;
@@ -33,16 +45,12 @@ export default function RoomPage() {
         });
         const getData = await getResponse.json();
 
-        // 生成唯一 playerID（模擬，實際可使用 UUID
-        const newPlayerID = getData.players.length;
-        setPlayerID(newPlayerID);
-
         // 無論房間是否存在，直接嘗試加入玩家
         const postResponse = await fetch(`http://localhost:8001/api/rooms/${id}/addPlayers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: String(newPlayerID),
+            id: playerID,
             name: playerName,
             slot: getData.exists ? getData.players.length : 0,
           }),
@@ -72,7 +80,7 @@ export default function RoomPage() {
       }
     };
     joinRoom();
-  }, [id, playerName, navigate]);
+  }, [id, playerID, playerName, navigate]);
 
   // 改變最大玩家數
   const handleChangeMaxPlayers = (num) => {
@@ -101,9 +109,8 @@ export default function RoomPage() {
     alert("遊戲開始！（靜態模擬）");
   };
 
-  // 離開房間（靜態模擬）
+  // 離開房間
   const handleLeaveRoom = async () => {
-    if (!playerID) return;
     try {
       await fetch(`http://localhost:8001/api/rooms/${id}/leave`, {
         method: "POST",
@@ -117,22 +124,26 @@ export default function RoomPage() {
     }
   };
 
-  // 瀏覽器關閉或刷新時，自動離開房間
-  useEffect(() => {
-  const handleBeforeUnload = () => {
-    if (!playerID) return;
+  // // 瀏覽器關閉或刷新時，自動離開房間
+  // useEffect(() => {
+  //   const leave = () => {
+  //     if (!playerID) return;
+  //     fetch(`/api/rooms/${id}/leave`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ playerID }),
+  //       keepalive: true,
+  //     });
+  //   };
 
-    const url = `http://localhost:8001/api/rooms/${id}/leave`;
-    const data = JSON.stringify({ playerID });
+  //   window.addEventListener("beforeunload", leave);
+  //   window.addEventListener("pagehide", leave);
 
-    navigator.sendBeacon(url, data);
-  };
-
-  window.addEventListener("beforeunload", handleBeforeUnload);
-  return () => {
-    window.removeEventListener("beforeunload", handleBeforeUnload);
-  };
-}, [id, playerID]);
+  //   return () => {
+  //     window.removeEventListener("beforeunload", leave);
+  //     window.removeEventListener("pagehide", leave);
+  //   };
+  // }, [playerID, id]);
 
   const isHost = playerID === hostID; // 檢查是否為房主
 
