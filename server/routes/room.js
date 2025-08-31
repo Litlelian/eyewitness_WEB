@@ -20,6 +20,7 @@ router.get("/:id", (req, res) => {
     exists: !!room,
     players: room?.players || [],
     maxPlayers: room?.maxPlayers || 6,
+    hostSlot: room?.hostSlot || null,
     gameLevel: room?.gameLevel || 3,
     gamePlaying: false,
   });
@@ -28,7 +29,6 @@ router.get("/:id", (req, res) => {
 // API: 添加新玩家到房間
 router.post("/:id/addPlayers", (req, res) => {
   const { id } = req.params;
-  console.log("Leave Room", id)
   const { id: playerID, name, slot } = req.body;
 
   // 驗證請求資料
@@ -39,7 +39,7 @@ router.post("/:id/addPlayers", (req, res) => {
   // 初始化房間（如果不存在）
   if (!rooms[id]) {
     console.log(`房間 ${id} 被創建`);
-    rooms[id] = { players: [], maxPlayers: 6, gameLevel: 3, gamePlaying: false};
+    rooms[id] = { players: [], maxPlayers: 6, gameLevel: 3, hostSlot: 0, gamePlaying: false};
   }
 
   // 檢查房間是否已滿
@@ -66,6 +66,7 @@ router.post("/:id/addPlayers", (req, res) => {
     exists: true,
     players: rooms[id].players,
     maxPlayers: rooms[id].maxPlayers,
+    hostSlot: rooms[id].hostSlot,
     gameLevel: rooms[id].gameLevel,
     gamePlaying: rooms[id].gamePlaying,
   });
@@ -99,6 +100,7 @@ router.post("/:id/leave", (req, res) => {
       exists: false,
       players: [],
       maxPlayers: 6,
+      hostSlot: 0,
       gameLevel: 3,
       gamePlaying: false,
     });
@@ -108,6 +110,7 @@ router.post("/:id/leave", (req, res) => {
     exists: true,
     players: room.players,
     maxPlayers: room.maxPlayers,
+    hostSlot: room.hostSlot,
     gameLevel: room.gameLevel,
     gamePlaying: room.gamePlaying || false,
   });

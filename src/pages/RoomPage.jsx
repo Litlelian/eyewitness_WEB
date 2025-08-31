@@ -11,21 +11,23 @@ export default function RoomPage() {
   const navigate = useNavigate();
   const playerName = location.state?.playerName?.trim() || "匿名玩家"; // 傳入的玩家名稱
   const [playerID, setPlayerID] = useState(null); // 當前玩家 ID
+  const [playerSlot, setPlayerSlot] = useState(null); // 當前玩家位置
   const [players, setPlayers] = useState([]); // 從 API 初始化
-  const [hostID, setHostID] = useState(null); // 房主 ID
+  const [hostslot, setHostSlot] = useState(null); // 房主位置
   const [maxPlayers, setMaxPlayers] = useState(6); // 從 API 初始化
   const [level, setLevel] = useState(3); // 從 API 初始化
   const [error, setError] = useState(null); // 錯誤訊息
   const [isLoading, setIsLoading] = useState(true); // 標記 API 載入狀態
 
   const hasJoinedRef = useRef(false);
+  const hasGenerateID = useRef(false);
 
   useEffect(() => {
-    console.log(`before 玩家ID = ${playerID}`);
     if (!playerID) {
+      if (hasGenerateID.current) return;
+      hasGenerateID.current = true;
       const newID = uuidv4(); // 生成唯一 ID
       setPlayerID(newID);
-      console.log(`玩家ID = ${playerID}`);
     }
   }, [playerID]);
 
@@ -68,8 +70,9 @@ export default function RoomPage() {
         const postData = await postResponse.json();
         setPlayers(postData.players || []);
         setMaxPlayers(postData.maxPlayers || 6);
+        setPlayerSlot(postResponse.exists ? getData.players.length : 0);
         setLevel(postData.gameLevel || 3);
-        setHostID(postData.players.length > 0 ? postData.players[0].slot : null);
+        setHostSlot(postData.hostslot || 0);
       } catch (err) {
         console.error("加入房間失敗:", err);
         setError("無法加入房間，請稍後重試");
@@ -124,28 +127,10 @@ export default function RoomPage() {
     }
   };
 
-  // // 瀏覽器關閉或刷新時，自動離開房間
-  // useEffect(() => {
-  //   const leave = () => {
-  //     if (!playerID) return;
-  //     fetch(`/api/rooms/${id}/leave`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ playerID }),
-  //       keepalive: true,
-  //     });
-  //   };
+  // TODO 瀏覽器關閉或刷新時，自動離開房間
 
-  //   window.addEventListener("beforeunload", leave);
-  //   window.addEventListener("pagehide", leave);
 
-  //   return () => {
-  //     window.removeEventListener("beforeunload", leave);
-  //     window.removeEventListener("pagehide", leave);
-  //   };
-  // }, [playerID, id]);
-
-  const isHost = playerID === hostID; // 檢查是否為房主
+  const isHost = playerID === hostslot; // 檢查是否為房主
 
   if (isLoading) {
     return <div className="room-page">載入房間中...</div>;
@@ -158,7 +143,7 @@ export default function RoomPage() {
       {error && <p className="error">{error}</p>}
 
       {/* 顯示玩家格子 */}
-      <PlayerGrid players={players} maxPlayers={maxPlayers} hostID={hostID} />
+      <PlayerGrid players={players} maxPlayers={maxPlayers} hostslot={hostslot} />
 
       {/* 房主/玩家控制按鈕 */}
       <RoomControls

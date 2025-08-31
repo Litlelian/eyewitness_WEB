@@ -1,7 +1,7 @@
 import React from "react";
 import "./PlayerGrid.css";
 
-const PlayerGrid = ({ players, maxPlayers, hostID }) => {
+const PlayerGrid = ({ players, maxPlayers, hostslot }) => {
   // 創建格子，填充玩家或空位
   const grid = Array.from({ length: maxPlayers }, (_, index) => {
     const player = players[index];
@@ -12,7 +12,7 @@ const PlayerGrid = ({ players, maxPlayers, hostID }) => {
       >
         {player ? (
           <>
-            {player.slot === hostID && <span className="host-label">房主</span>}
+            {player.slot === hostslot && <span className="host-label">房主</span>}
             <span className="player-name">{player.name}</span>
           </>
         ) : (
