@@ -10,17 +10,20 @@ export default function RoomPage() {
   const location = useLocation(); // 從 navigate 獲取 state
   const navigate = useNavigate();
   const playerName = location.state?.playerName?.trim() || "匿名玩家"; // 傳入的玩家名稱
+  
   const [playerID, setPlayerID] = useState(null); // 當前玩家 ID
   const [playerSlot, setPlayerSlot] = useState(null); // 當前玩家位置
   const [players, setPlayers] = useState([]); // 從 API 初始化
-  const [hostslot, setHostSlot] = useState(null); // 房主位置
+  const [hostSlot, setHostSlot] = useState(null); // 房主位置
   const [maxPlayers, setMaxPlayers] = useState(6); // 從 API 初始化
   const [level, setLevel] = useState(3); // 從 API 初始化
   const [error, setError] = useState(null); // 錯誤訊息
   const [isLoading, setIsLoading] = useState(true); // 標記 API 載入狀態
+  const [isHost, setIsHost] = useState(false);
 
   const hasJoinedRef = useRef(false);
   const hasGenerateID = useRef(false);
+  const wsRef = useRef(null);
 
   useEffect(() => {
     if (!playerID) {
@@ -70,9 +73,37 @@ export default function RoomPage() {
         const postData = await postResponse.json();
         setPlayers(postData.players || []);
         setMaxPlayers(postData.maxPlayers || 6);
-        setPlayerSlot(postData.exists ? postData.players.length - 1 : 0);
         setLevel(postData.gameLevel || 3);
-        setHostSlot(postData.hostslot || 0);
+        setHostSlot(postData.hostSlot || 0);
+
+        const mySlotObj = postData.players.find(p => p.id === playerID);
+        setPlayerSlot(mySlotObj?.slot ?? null);
+
+        // === WebSocket 連線 ===
+        const ws = new WebSocket("ws://localhost:8001");
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          ws.send(JSON.stringify({ type: "joinRoom", roomID: id, playerID }));
+        };
+
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "roomUpdate") {
+            // 更新整個房間狀態
+            setPlayers(data.players);
+            setHostSlot(data.hostSlot ?? 0);
+
+            // 更新自己在房間的位置
+            const mySlotobj = data.players.find(p => p.id === playerID);
+            setPlayerSlot(mySlotobj.slot);
+          }
+        };
+
+        ws.onclose = () => {
+          console.log("WebSocket 連線關閉");
+        };
       } catch (err) {
         console.error("加入房間失敗:", err);
         setError("無法加入房間，請稍後重試");
@@ -83,7 +114,17 @@ export default function RoomPage() {
       }
     };
     joinRoom();
+
+    // 離開房間時關閉 WebSocket
+    return () => {
+      wsRef.current?.close();
+    };
   }, [id, playerID, playerName, navigate]);
+
+  useEffect(() => {
+    if (playerSlot === null || hostSlot === null) return;
+    setIsHost(playerSlot === hostSlot);
+  }, [playerSlot, hostSlot]);
 
   // 改變最大玩家數
   const handleChangeMaxPlayers = (num) => {
@@ -129,8 +170,6 @@ export default function RoomPage() {
 
   // TODO 瀏覽器關閉或刷新時，自動離開房間
 
-  const isHost = playerSlot === hostslot; // 檢查是否為房主
-
   if (isLoading) {
     return <div className="room-page">載入房間中...</div>;
   }
@@ -142,7 +181,7 @@ export default function RoomPage() {
       {error && <p className="error">{error}</p>}
 
       {/* 顯示玩家格子 */}
-      <PlayerGrid players={players} maxPlayers={maxPlayers} hostslot={hostslot} />
+      <PlayerGrid players={players} maxPlayers={maxPlayers} hostSlot={hostSlot} />
 
       {/* 房主/玩家控制按鈕 */}
       <RoomControls

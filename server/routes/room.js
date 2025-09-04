@@ -42,33 +42,48 @@ router.post("/:id/addPlayers", (req, res) => {
     rooms[id] = { players: [], maxPlayers: 6, gameLevel: 3, hostSlot: 0, gamePlaying: false};
   }
 
+  const room = rooms[id];
+
   // 檢查房間是否已滿
-  if (rooms[id].players.length >= rooms[id].maxPlayers) {
+  if (room.players.length >= room.maxPlayers) {
     return res.status(400).json({ error: "房間已滿，無法加入" });
   }
 
   // 檢查玩家是否已存在
-  if (rooms[id].players.some((p) => p.name === name)) {
+  if (room.players.some((p) => p.name === name)) {
     return res.status(400).json({ error: `玩家 ${name} 已存在於房間中` });
   }
 
   // 檢查房間是否已開始遊戲
-  if (rooms[id].gamePlaying) {
+  if (room.gamePlaying) {
     return res.status(400).json({ error: "該房間已開始進行遊戲" });
   }
 
   // 添加新玩家
-  rooms[id].players.push({ id: playerID, name, slot });
+  const newPlayer = { id: playerID, name, slot };
+  room.players.push(newPlayer);
   console.log(`玩家 ${name} 加入房間 ${id}, 第 ${slot} 格`);
+
+  // 廣播給房間內所有 WebSocket
+  if (req.broadcast) {
+    req.broadcast(id, { 
+      type: "roomUpdate",
+      players: room.players,
+      maxPlayers: room.maxPlayers,
+      hostSlot: room.hostSlot,
+      gameLevel: room.gameLevel,
+      gamePlaying: room.gamePlaying,
+    });
+  }
 
   // 返回更新後的房間資料
   res.json({
     exists: true,
-    players: rooms[id].players,
-    maxPlayers: rooms[id].maxPlayers,
-    hostSlot: rooms[id].hostSlot,
-    gameLevel: rooms[id].gameLevel,
-    gamePlaying: rooms[id].gamePlaying,
+    players: room.players,
+    maxPlayers: room.maxPlayers,
+    hostSlot: room.hostSlot,
+    gameLevel: room.gameLevel,
+    gamePlaying: room.gamePlaying,
   });
 });
 
@@ -89,9 +104,28 @@ router.post("/:id/leave", (req, res) => {
   const removedPlayer = room.players.splice(playerIndex, 1)[0];
   console.log(`玩家 ${removedPlayer.name} (${removedPlayer.id}) 離開房間 ${id}`);
 
+  // 更新slot
   room.players.forEach((p, index) => {
     p.slot = index;
   });
+
+  // 如果被移除的是房主，遞補房主給第一位玩家
+  if (removedPlayer.slot === room.hostSlot) {
+    room.hostSlot = room.players.length > 0 ? 0 : null;
+    console.log(`房主已離開，新的房主 slot = ${room.hostSlot}`);
+  }
+
+  // 廣播離開事件
+  if (req.broadcast) {
+    req.broadcast(id, {
+      type: "roomUpdate",
+      players: room.players,
+      hostSlot: room.hostSlot,
+      maxPlayers: room.maxPlayers,
+      gameLevel: room.gameLevel,
+      gamePlaying: room.gamePlaying
+    });
+  }
 
   if (room.players.length === 0) {
     console.log(`房間 ${id} 已空，刪除`);
