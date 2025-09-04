@@ -59,7 +59,7 @@ router.post("/:id/addPlayers", (req, res) => {
 
   // 添加新玩家
   rooms[id].players.push({ id: playerID, name, slot });
-  console.log(`玩家 ${name} 加入房間 ${id}`);
+  console.log(`玩家 ${name} 加入房間 ${id}, 第 ${slot} 格`);
 
   // 返回更新後的房間資料
   res.json({

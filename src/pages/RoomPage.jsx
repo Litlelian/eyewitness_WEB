@@ -70,7 +70,7 @@ export default function RoomPage() {
         const postData = await postResponse.json();
         setPlayers(postData.players || []);
         setMaxPlayers(postData.maxPlayers || 6);
-        setPlayerSlot(postResponse.exists ? getData.players.length : 0);
+        setPlayerSlot(postData.exists ? postData.players.length - 1 : 0);
         setLevel(postData.gameLevel || 3);
         setHostSlot(postData.hostslot || 0);
       } catch (err) {
@@ -129,8 +129,7 @@ export default function RoomPage() {
 
   // TODO 瀏覽器關閉或刷新時，自動離開房間
 
-
-  const isHost = playerID === hostslot; // 檢查是否為房主
+  const isHost = playerSlot === hostslot; // 檢查是否為房主
 
   if (isLoading) {
     return <div className="room-page">載入房間中...</div>;
