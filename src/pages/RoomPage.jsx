@@ -57,7 +57,7 @@ export default function RoomPage() {
           body: JSON.stringify({
             id: playerID,
             name: playerName,
-            slot: getData.exists ? getData.players.length : 0,
+            slot: getData.players.length,
           }),
         });
 
@@ -89,15 +89,22 @@ export default function RoomPage() {
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
+          console.log(data.type);
 
           if (data.type === "roomUpdate") {
-            // 更新整個房間狀態
-            setPlayers(data.players);
-            setHostSlot(data.hostSlot ?? 0);
+            if (data.removedPlayerID === playerID){
+              alert("你已被房主踢出房間");
+              navigate("/");
+            }
+            else{
+              // 更新整個房間狀態
+              setPlayers(data.players);
+              setHostSlot(data.hostSlot ?? 0);
 
-            // 更新自己在房間的位置
-            const mySlotobj = data.players.find(p => p.id === playerID);
-            setPlayerSlot(mySlotobj.slot);
+              // 更新自己在房間的位置
+              const mySlotobj = data.players.find(p => p.id === playerID);
+              setPlayerSlot(mySlotobj.slot);
+            }
           }
         };
 
@@ -140,10 +147,33 @@ export default function RoomPage() {
     setLevel(newLevel);
   };
 
+  // host提出或轉移host給其他玩家
+  const handlePlayerAction = async (targetPlayer) => {
+    const action = window.prompt(
+      `要對玩家 ${targetPlayer.name} 做什麼？\n輸入 "kick" 踢出，或 "host" 轉交房主`
+    );
+
+    if (action === "kick") {
+      await fetch(`http://localhost:8001/api/rooms/${id}/kick`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerID: targetPlayer.id }),
+      });
+    }
+
+    if (action === "host") {
+      await fetch(`http://localhost:8001/api/rooms/${id}/transferHost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newHostID: targetPlayer.id }),
+      });
+    }
+  };
+
   // 開始遊戲（靜態模擬）
   const handleStartGame = () => {
     if (players.length < 3) {
-      alert("至少需要 3 名玩家才能開始遊戲！");
+      alert(`至少需要 3 名玩家才能開始遊戲！`);
       return;
     }
     if (players.length > maxPlayers) {
@@ -168,20 +198,19 @@ export default function RoomPage() {
     }
   };
 
-  // TODO 瀏覽器關閉或刷新時，自動離開房間
-
   if (isLoading) {
     return <div className="room-page">載入房間中...</div>;
   }
 
   return (
     <div className="room-page">
-      <h1>🃏 房間 {id}</h1>
+      <h1>房間 {id}</h1>
       <p>玩家名稱：{playerName}</p>
       {error && <p className="error">{error}</p>}
 
       {/* 顯示玩家格子 */}
-      <PlayerGrid players={players} maxPlayers={maxPlayers} hostSlot={hostSlot} />
+      <PlayerGrid players={players} maxPlayers={maxPlayers} hostSlot={hostSlot} 
+      isHost={isHost} onPlayerAction={handlePlayerAction}/>
 
       {/* 房主/玩家控制按鈕 */}
       <RoomControls

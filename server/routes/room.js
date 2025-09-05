@@ -17,7 +17,6 @@ router.get("/:id", (req, res) => {
   }
 
   res.json({
-    exists: !!room,
     players: room?.players || [],
     maxPlayers: room?.maxPlayers || 6,
     hostSlot: room?.hostSlot || null,
@@ -68,23 +67,12 @@ router.post("/:id/addPlayers", (req, res) => {
   if (req.broadcast) {
     req.broadcast(id, { 
       type: "roomUpdate",
-      players: room.players,
-      maxPlayers: room.maxPlayers,
-      hostSlot: room.hostSlot,
-      gameLevel: room.gameLevel,
-      gamePlaying: room.gamePlaying,
+      ...room,
     });
   }
 
   // 返回更新後的房間資料
-  res.json({
-    exists: true,
-    players: room.players,
-    maxPlayers: room.maxPlayers,
-    hostSlot: room.hostSlot,
-    gameLevel: room.gameLevel,
-    gamePlaying: room.gamePlaying,
-  });
+  res.json(room);
 });
 
 // API: 玩家離開房間 (POST 統一用)
@@ -119,35 +107,54 @@ router.post("/:id/leave", (req, res) => {
   if (req.broadcast) {
     req.broadcast(id, {
       type: "roomUpdate",
-      players: room.players,
-      hostSlot: room.hostSlot,
-      maxPlayers: room.maxPlayers,
-      gameLevel: room.gameLevel,
-      gamePlaying: room.gamePlaying
+      ...room,
     });
   }
 
   if (room.players.length === 0) {
     console.log(`房間 ${id} 已空，刪除`);
     delete rooms[id];
-    return res.json({
-      exists: false,
-      players: [],
-      maxPlayers: 6,
-      hostSlot: 0,
-      gameLevel: 3,
-      gamePlaying: false,
-    });
+    return res.json(room);
   }
+  res.json(room);
+});
 
-  res.json({
-    exists: true,
-    players: room.players,
-    maxPlayers: room.maxPlayers,
-    hostSlot: room.hostSlot,
-    gameLevel: room.gameLevel,
-    gamePlaying: room.gamePlaying || false,
-  });
+// API: 踢出玩家
+router.post("/:id/kick", (req, res) => {
+  const { id } = req.params;
+  const { playerID } = req.body;
+
+  const room = rooms[id];
+  if (!room) return res.status(404).json({ error: "房間不存在" });
+
+  const idx = room.players.findIndex((p) => p.id === playerID);
+  if (idx === -1) return res.status(404).json({ error: "玩家不存在" });
+
+  const removed = room.players.splice(idx, 1)[0];
+  room.players.forEach((p, i) => (p.slot = i)); // 重排 slot
+
+  console.log(`玩家 ${removed.name} 被房主踢出房間 ${id}`);
+  req.broadcast(id, { type: "roomUpdate", ...room, removedPlayerID: playerID,});
+  res.json(room);
+});
+
+// API: 轉交房主
+router.post("/:id/transferHost", (req, res) => {
+  const { id } = req.params;
+  const { newHostID } = req.body;
+
+  const room = rooms[id];
+  if (!room) return res.status(404).json({ error: "房間不存在" });
+
+  const newHost = room.players.find((p) => p.id === newHostID);
+  if (!newHost) return res.status(404).json({ error: "目標玩家不存在" });
+
+  room.hostSlot = newHost.slot;
+
+  console.log(`房主轉交給 ${newHost.name} (${newHost.id})`);
+
+  req.broadcast(id, { type: "roomUpdate", ...room });
+  res.json(room);
 });
 
 // 將 router export

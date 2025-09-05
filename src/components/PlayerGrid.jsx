@@ -1,7 +1,7 @@
 import React from "react";
 import "./PlayerGrid.css";
 
-const PlayerGrid = ({ players, maxPlayers, hostSlot }) => {
+const PlayerGrid = ({ players, maxPlayers, hostSlot, isHost, onPlayerAction }) => {
   // 創建格子，填充玩家或空位
   const grid = Array.from({ length: maxPlayers }, (_, index) => {
     const player = players[index];
@@ -9,6 +9,12 @@ const PlayerGrid = ({ players, maxPlayers, hostSlot }) => {
       <div
         key={index}
         className={`player-grid-item ${player ? "occupied" : "empty"}`}
+        onClick={() => {
+          if (isHost && player && player.slot !== hostSlot) {
+            // 觸發房主操作
+            onPlayerAction(player);
+          }
+        }}
       >
         {player ? (
           <>

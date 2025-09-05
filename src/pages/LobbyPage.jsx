@@ -32,7 +32,7 @@ export default function LobbyPage() {
       if (!res.ok) throw new Error("伺服器錯誤");
       const data = await res.json();
 
-      if (!data.exists || data.players.length === 0) {
+      if (data.players.length === 0) {
         alert("房間不存在或尚未有玩家建立！");
         return;
       }
