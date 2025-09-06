@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import PlayerGrid from "../components/PlayerGrid";
 import RoomControls from "../components/RoomControls";
+import RoleGrid from "../components/RoleGrid";
+import levelConfig from "../config/levelConfig.json";
 import "./RoomPage.css";
 
 export default function RoomPage() {
@@ -133,20 +135,6 @@ export default function RoomPage() {
     setIsHost(playerSlot === hostSlot);
   }, [playerSlot, hostSlot]);
 
-  // 改變最大玩家數
-  const handleChangeMaxPlayers = (num) => {
-    if (num < players.length) {
-      alert(`最大玩家數不能小於目前房間人數 (${players.length})`);
-      return;
-    }
-    setMaxPlayers(num);
-  };
-
-  // 改變遊戲等級
-  const handleChangeLevel = (newLevel) => {
-    setLevel(newLevel);
-  };
-
   // host提出或轉移host給其他玩家
   const handlePlayerAction = async (targetPlayer) => {
     const action = window.prompt(
@@ -170,6 +158,30 @@ export default function RoomPage() {
     }
   };
 
+  // 改變最大玩家數
+  const handleChangeMaxPlayers = async (num) => {
+    if (num < players.length) {
+      alert(`最大玩家數不能小於目前房間人數 (${players.length})`);
+      return;
+    }
+    setMaxPlayers(num);
+    await fetch(`http://localhost:8001/api/rooms/${id}/maxPlayers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ maxPlayers: num }),
+    });
+  };
+
+  // 改變遊戲等級
+  const handleChangeLevel = async (newLevel) => {
+    setLevel(newLevel);
+    await fetch(`http://localhost:8001/api/rooms/${id}/level`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level: newLevel }),
+    });
+  };
+  
   // 開始遊戲（靜態模擬）
   const handleStartGame = () => {
     if (players.length < 3) {
@@ -209,8 +221,16 @@ export default function RoomPage() {
       {error && <p className="error">{error}</p>}
 
       {/* 顯示玩家格子 */}
-      <PlayerGrid players={players} maxPlayers={maxPlayers} hostSlot={hostSlot} 
-      isHost={isHost} onPlayerAction={handlePlayerAction}/>
+      <PlayerGrid 
+        players={players}
+        maxPlayers={maxPlayers}
+        hostSlot={hostSlot} 
+        isHost={isHost}
+        onPlayerAction={handlePlayerAction}
+      />
+
+      {/* 顯示角色格子 */}
+      <RoleGrid level={level} maxPlayers={maxPlayers} />
 
       {/* 房主/玩家控制按鈕 */}
       <RoomControls

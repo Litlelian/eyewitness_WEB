@@ -3,7 +3,6 @@ import express from "express";
 const router = express.Router();
 
 // 模擬房間資料
-// 真實專案可以改成用資料庫或 Boardgame.io G
 const rooms = {};
 
 // API: 取得房間資訊
@@ -20,7 +19,7 @@ router.get("/:id", (req, res) => {
     players: room?.players || [],
     maxPlayers: room?.maxPlayers || 6,
     hostSlot: room?.hostSlot || null,
-    gameLevel: room?.gameLevel || 3,
+    gameLevel: room?.gameLevel || 8,
     gamePlaying: false,
   });
 });
@@ -38,7 +37,7 @@ router.post("/:id/addPlayers", (req, res) => {
   // 初始化房間（如果不存在）
   if (!rooms[id]) {
     console.log(`房間 ${id} 被創建`);
-    rooms[id] = { players: [], maxPlayers: 6, gameLevel: 3, hostSlot: 0, gamePlaying: false};
+    rooms[id] = { players: [], maxPlayers: 6, gameLevel: 8, hostSlot: 0, gamePlaying: false};
   }
 
   const room = rooms[id];
@@ -154,6 +153,42 @@ router.post("/:id/transferHost", (req, res) => {
   console.log(`房主轉交給 ${newHost.name} (${newHost.id})`);
 
   req.broadcast(id, { type: "roomUpdate", ...room });
+  res.json(room);
+});
+
+// API: 修改最大玩家數
+router.post("/:id/maxPlayers", (req, res) => {
+  const { id } = req.params;
+  const { maxPlayers } = req.body;
+
+  const room = rooms[id];
+  if (!room) return res.status(404).json({ error: "房間不存在" });
+
+  if (maxPlayers < room.players.length) {
+    return res.status(400).json({ error: `最大玩家數不能小於目前人數 (${room.players.length})` });
+  }
+
+  room.maxPlayers = maxPlayers;
+
+  // 廣播給房間所有人
+  req.broadcast(id, { type: "roomUpdate", ...room });
+
+  res.json(room);
+});
+
+// API: 修改遊戲等級
+router.post("/:id/level", (req, res) => {
+  const { id } = req.params;
+  const { level } = req.body;
+
+  const room = rooms[id];
+  if (!room) return res.status(404).json({ error: "房間不存在" });
+
+  room.level = level;
+
+  // 廣播給房間所有人
+  req.broadcast(id, { type: "roomUpdate", ...room });
+
   res.json(room);
 });
 
