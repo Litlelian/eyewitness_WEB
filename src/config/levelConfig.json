@@ -1,44 +1,75 @@
 {
   "1": {
     "range": [3, 4],
-    "roles": ["殺人魔", "客人"],
-    "distribution": { "3": { "客人": 3 }, "4": { "客人": 4 } }
+    "roles": ["killer", "guest"],
+    "distribution": {
+      "3": { "killer": 1, "guest": 3 },
+      "4": { "killer": 1, "guest": 4 }
+    }
   },
   "2": {
     "range": [3, 5],
-    "roles": ["殺人魔", "共犯", "客人"],
-    "distribution": { "3": { "客人": 2 }, "4": { "客人": 3 }, "5": { "客人": 4 } }
+    "roles": ["killer", "accomplice", "guest"],
+    "distribution": {
+      "3": { "killer": 1, "accomplice": 1, "guest": 2 },
+      "4": { "killer": 1, "accomplice": 1, "guest": 3 },
+      "5": { "killer": 1, "accomplice": 1, "guest": 4 }
+    }
   },
   "3": {
     "range": [4, 6],
-    "roles": ["殺人魔", "共犯", "律師", "客人"],
-    "distribution": { "4": { "客人": 2 }, "5": { "客人": 3 }, "6": { "客人": 4 } }
+    "roles": ["killer", "accomplice", "lawyer", "guest"],
+    "distribution": {
+      "4": { "killer": 1, "accomplice": 1, "lawyer": 1, "guest": 2 },
+      "5": { "killer": 1, "accomplice": 1, "lawyer": 1, "guest": 3 },
+      "6": { "killer": 1, "accomplice": 1, "lawyer": 1, "guest": 4 }
+    }
   },
   "4": {
     "range": [3, 5],
-    "roles": ["殺人魔", "炸彈客", "客人"],
-    "distribution": { "3": { "客人": 2 }, "4": { "客人": 3 }, "5": { "客人": 4 } }
+    "roles": ["killer", "bomber", "guest"],
+    "distribution": {
+      "3": { "killer": 1, "bomber": 1, "guest": 2 },
+      "4": { "killer": 1, "bomber": 1, "guest": 3 },
+      "5": { "killer": 1, "bomber": 1, "guest": 4 }
+    }
   },
   "5": {
     "range": [4, 6],
-    "roles": ["殺人魔", "炸彈客", "富商", "客人"],
-    "distribution": { "4": { "客人": 2 }, "5": { "客人": 3 }, "6": { "客人": 4 } }
+    "roles": ["killer", "bomber", "businessman", "guest"],
+    "distribution": {
+      "4": { "killer": 1, "bomber": 1, "businessman": 1, "guest": 2 },
+      "5": { "killer": 1, "bomber": 1, "businessman": 1, "guest": 3 },
+      "6": { "killer": 1, "bomber": 1, "businessman": 1, "guest": 4 }
+    }
   },
   "6": {
     "range": [4, 6],
-    "roles": ["殺人魔", "炸彈客", "偵探", "客人"],
-    "distribution": { "4": { "客人": 2 }, "5": { "客人": 3 }, "6": { "客人": 4 } }
+    "roles": ["killer", "bomber", "detective", "guest"],
+    "distribution": {
+      "4": { "killer": 1, "bomber": 1, "detective": 1, "guest": 2 },
+      "5": { "killer": 1, "bomber": 1, "detective": 1, "guest": 3 },
+      "6": { "killer": 1, "bomber": 1, "detective": 1, "guest": 4 }
+    }
   },
   "7": {
     "range": [4, 6],
-    "roles": ["殺人魔", "共犯", "炸彈客", "律師", "富商", "偵探", "管家", "客人"],
-    "distribution": { "4": { "客人": 0 }, "5": { "客人": 1 }, "6": { "客人": 2 } },
-    "specialRule": "遊戲前先把殺人魔排除，隨機抽出兩張角色牌蓋在鍋爐室旁邊。"
+    "roles": ["killer", "accomplice", "bomber", "lawyer", "businessman", "detective", "butler", "guest"],
+    "distribution": {
+      "4": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 0 },
+      "5": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 1 },
+      "6": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 2 }
+    },
+    "special": "特殊規則 : 遊戲前先把殺人魔排除，隨機抽出兩張角色牌蓋在鍋爐室旁邊。"
   },
   "8": {
     "range": [4, 6],
-    "roles": ["殺人魔", "共犯", "炸彈客", "律師", "富商", "偵探", "管家", "客人"],
-    "distribution": { "4": { "客人": 2 }, "5": { "客人": 3 }, "6": { "客人": 4 } },
-    "specialRule": "遊戲前先把殺人魔排除，隨機抽出兩張角色牌蓋在鍋爐室旁邊，並再將兩張角色牌移出遊戲。"
+    "roles": ["killer", "accomplice", "bomber", "lawyer", "businessman", "detective", "butler", "guest"],
+    "distribution": {
+      "4": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 2 },
+      "5": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 3 },
+      "6": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 4 }
+    },
+    "special": "特殊規則 : 遊戲前先把殺人魔排除，隨機抽出兩張角色牌蓋在鍋爐室旁邊，並再將兩張角色牌移出遊戲。"
   }
 }
