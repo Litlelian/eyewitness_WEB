@@ -41,6 +41,11 @@ wss.on("connection", (ws) => {
       if (!rooms[roomID]) rooms[roomID] = new Set();
       rooms[roomID].add(ws);
     }
+    if (data.type === "startGame") {
+      const { roomID } = data;
+      console.log(`🎮 Room ${roomID} 遊戲開始`);
+      broadcast(roomID, { type: "gameStart", roomID });
+    }
   });
 
   ws.on("close",async () => {
@@ -48,7 +53,12 @@ wss.on("connection", (ws) => {
     const playerID = ws.playerID;
 
     try {
-      // 呼叫你的 API
+      const ifGameStart = await fetch(`http://localhost:8001/api/rooms/${roomID}/getStartGame`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const checkGameStart = await ifGameStart.json();
+      if(checkGameStart.gamePlaying) return;
       const res = await fetch(`http://localhost:8001/api/rooms/${roomID}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

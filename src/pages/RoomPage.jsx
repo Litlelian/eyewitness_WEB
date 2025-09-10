@@ -4,7 +4,6 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import PlayerGrid from "../components/PlayerGrid";
 import RoomControls from "../components/RoomControls";
 import RoleGrid from "../components/RoleGrid";
-import levelConfig from "../config/levelConfig.json";
 import "./RoomPage.css";
 
 export default function RoomPage() {
@@ -18,7 +17,7 @@ export default function RoomPage() {
   const [players, setPlayers] = useState([]); // 從 API 初始化
   const [hostSlot, setHostSlot] = useState(null); // 房主位置
   const [maxPlayers, setMaxPlayers] = useState(6); // 從 API 初始化
-  const [level, setLevel] = useState(3); // 從 API 初始化
+  const [level, setLevel] = useState(1); // 從 API 初始化
   const [error, setError] = useState(null); // 錯誤訊息
   const [isLoading, setIsLoading] = useState(true); // 標記 API 載入狀態
   const [isHost, setIsHost] = useState(false);
@@ -89,7 +88,7 @@ export default function RoomPage() {
           ws.send(JSON.stringify({ type: "joinRoom", roomID: id, playerID }));
         };
 
-        ws.onmessage = (event) => {
+        ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
           console.log(data.type);
 
@@ -102,11 +101,16 @@ export default function RoomPage() {
               // 更新整個房間狀態
               setPlayers(data.players);
               setHostSlot(data.hostSlot ?? 0);
+              setLevel(data.gameLevel);
+              setMaxPlayers(data.maxPlayers);
 
               // 更新自己在房間的位置
               const mySlotobj = data.players.find(p => p.id === playerID);
               setPlayerSlot(mySlotobj.slot);
             }
+          }
+          if (data.type === "gameStart") {
+            navigate(`/room/${id}/game`, { state: {playerID, room: data} });
           }
         };
 
@@ -182,8 +186,8 @@ export default function RoomPage() {
     });
   };
   
-  // 開始遊戲（靜態模擬）
-  const handleStartGame = () => {
+  // 開始遊戲
+  const handleStartGame = async() => {
     if (players.length < 3) {
       alert(`至少需要 3 名玩家才能開始遊戲！`);
       return;
@@ -192,7 +196,15 @@ export default function RoomPage() {
       alert(`目前玩家數 (${players.length}) 超過最大玩家數 (${maxPlayers})`);
       return;
     }
-    alert("遊戲開始！（靜態模擬）");
+    if (players.length != maxPlayers) {
+      alert(`目前玩家數 (${players.length}) 未達最大玩家數 (${maxPlayers})，請房主調整相關設定`);
+      return;
+    }
+    await fetch(`http://localhost:8001/api/rooms/${id}/startGame`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameStart: true }),
+    });
   };
 
   // 離開房間

@@ -1,0 +1,40 @@
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* 區塊間距 */
+  padding: 20px;
+}
+
+.player-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* 玩家長方形間距 */
+  flex-wrap: wrap; /* 玩家數量多的時候自動換行 */
+}
+
+.extra-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.rect {
+  width: 120px;
+  height: 80px;
+  background-color: #87cefa;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.player-rect {
+  background-color: #90ee90;
+}
+
+.extra-rect {
+  background-color: #ffcccb;
+}

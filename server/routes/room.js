@@ -111,9 +111,11 @@ router.post("/:id/leave", (req, res) => {
   }
 
   if (room.players.length === 0) {
-    console.log(`房間 ${id} 已空，刪除`);
-    delete rooms[id];
-    return res.json(room);
+    if (!room.gamePlaying) {
+      console.log(`房間 ${id} 已空，刪除`);
+      delete rooms[id];
+      return res.json(room);
+    }
   }
   res.json(room);
 });
@@ -184,10 +186,38 @@ router.post("/:id/level", (req, res) => {
   const room = rooms[id];
   if (!room) return res.status(404).json({ error: "房間不存在" });
 
-  room.level = level;
+  room.gameLevel = level;
 
   // 廣播給房間所有人
   req.broadcast(id, { type: "roomUpdate", ...room });
+
+  res.json(room);
+});
+
+// API: 看遊戲是否已開始
+router.get("/:id/getStartGame", (req, res) => {
+  const { id } = req.params;
+  const room = rooms[id];
+  if (!room) {
+    console.log(`房間 ${id} 並不存在`);
+  }
+
+  res.json({
+    gamePlaying: room?.gamePlaying || false,
+  });
+})
+
+// API: 開始遊戲
+router.post("/:id/startGame", (req, res) => {
+  const { id } = req.params;
+  const { gameStart } = req.body;
+
+  const room = rooms[id];
+  if (!room) return res.status(404).json({ error: "房間不存在" });
+
+  room.gamePlaying = gameStart;
+
+  req.broadcast(id, { type: "gameStart", ...room });
 
   res.json(room);
 });
