@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import CONFIG from "../config/config.json";
 import PlayerGrid from "../components/PlayerGrid";
 import RoomControls from "../components/RoomControls";
 import RoleGrid from "../components/RoleGrid";
@@ -45,14 +46,14 @@ export default function RoomPage() {
         hasJoinedRef.current = true;
 
         // 嘗試獲取房間資訊
-        const getResponse = await fetch(`http://localhost:8001/api/rooms/${id}`, {
+        const getResponse = await fetch(`${CONFIG["host"]}/api/rooms/${id}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
         const getData = await getResponse.json();
 
         // 無論房間是否存在，直接嘗試加入玩家
-        const postResponse = await fetch(`http://localhost:8001/api/rooms/${id}/addPlayers`, {
+        const postResponse = await fetch(`${CONFIG["host"]}/api/rooms/${id}/addPlayers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -146,7 +147,7 @@ export default function RoomPage() {
     );
 
     if (action === "kick") {
-      await fetch(`http://localhost:8001/api/rooms/${id}/kick`, {
+      await fetch(`${CONFIG["host"]}/api/rooms/${id}/kick`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerID: targetPlayer.id }),
@@ -154,7 +155,7 @@ export default function RoomPage() {
     }
 
     if (action === "host") {
-      await fetch(`http://localhost:8001/api/rooms/${id}/transferHost`, {
+      await fetch(`${CONFIG["host"]}/api/rooms/${id}/transferHost`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newHostID: targetPlayer.id }),
@@ -169,7 +170,7 @@ export default function RoomPage() {
       return;
     }
     setMaxPlayers(num);
-    await fetch(`http://localhost:8001/api/rooms/${id}/maxPlayers`, {
+    await fetch(`${CONFIG["host"]}/api/rooms/${id}/maxPlayers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ maxPlayers: num }),
@@ -179,7 +180,7 @@ export default function RoomPage() {
   // 改變遊戲等級
   const handleChangeLevel = async (newLevel) => {
     setLevel(newLevel);
-    await fetch(`http://localhost:8001/api/rooms/${id}/level`, {
+    await fetch(`${CONFIG["host"]}/api/rooms/${id}/level`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level: newLevel }),
@@ -200,7 +201,7 @@ export default function RoomPage() {
       alert(`目前玩家數 (${players.length}) 未達最大玩家數 (${maxPlayers})，請房主調整相關設定`);
       return;
     }
-    await fetch(`http://localhost:8001/api/rooms/${id}/startGame`, {
+    await fetch(`${CONFIG["host"]}/api/rooms/${id}/startGame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ gameStart: true }),
@@ -210,7 +211,7 @@ export default function RoomPage() {
   // 離開房間
   const handleLeaveRoom = async () => {
     try {
-      await fetch(`http://localhost:8001/api/rooms/${id}/leave`, {
+      await fetch(`${CONFIG["host"]}/api/rooms/${id}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerID }),

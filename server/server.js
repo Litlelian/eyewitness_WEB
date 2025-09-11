@@ -5,6 +5,12 @@ import { WebSocketServer } from "ws";
 
 import roomsRouter from "./routes/room.js";
 
+import fs from "fs";
+import path from "path";
+
+const configPath = path.resolve("../src/config/config.json");
+const CONFIG = JSON.parse(fs.readFileSync(configPath, "utf8"));
+
 const apiApp = express();
 apiApp.use(cors());
 apiApp.use(express.json());
@@ -53,13 +59,13 @@ wss.on("connection", (ws) => {
     const playerID = ws.playerID;
 
     try {
-      const ifGameStart = await fetch(`http://localhost:8001/api/rooms/${roomID}/getStartGame`, {
+      const ifGameStart = await fetch(`${CONFIG["host"]}/api/rooms/${roomID}/getStartGame`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
       const checkGameStart = await ifGameStart.json();
       if(checkGameStart.gamePlaying) return;
-      const res = await fetch(`http://localhost:8001/api/rooms/${roomID}/leave`, {
+      const res = await fetch(`${CONFIG["host"]}/api/rooms/${roomID}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerID }),
@@ -93,7 +99,7 @@ apiApp.use((req, res, next) => {
 
 apiApp.use("/api/rooms", roomsRouter);
 
-const API_PORT = 8001;
+const API_PORT = CONFIG["port"];
 server.listen(API_PORT, () => {
   console.log(`✅ Express + WS running at http://localhost:${API_PORT}`);
 });
