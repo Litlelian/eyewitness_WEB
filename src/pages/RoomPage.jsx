@@ -17,7 +17,7 @@ export default function RoomPage() {
   const [playerSlot, setPlayerSlot] = useState(null); // 當前玩家位置
   const [players, setPlayers] = useState([]); // 從 API 初始化
   const [hostSlot, setHostSlot] = useState(null); // 房主位置
-  const [maxPlayers, setMaxPlayers] = useState(6); // 從 API 初始化
+  const [maxPlayers, setMaxPlayers] = useState(3); // 從 API 初始化
   const [level, setLevel] = useState(1); // 從 API 初始化
   const [error, setError] = useState(null); // 錯誤訊息
   const [isLoading, setIsLoading] = useState(true); // 標記 API 載入狀態
@@ -74,15 +74,15 @@ export default function RoomPage() {
         // 更新前端狀態
         const postData = await postResponse.json();
         setPlayers(postData.players || []);
-        setMaxPlayers(postData.maxPlayers || 6);
-        setLevel(postData.gameLevel || 3);
+        setMaxPlayers(postData.maxPlayers || 3);
+        setLevel(postData.gameLevel || 1);
         setHostSlot(postData.hostSlot || 0);
 
         const mySlotObj = postData.players.find(p => p.id === playerID);
         setPlayerSlot(mySlotObj?.slot ?? null);
 
         // === WebSocket 連線 ===
-        const ws = new WebSocket("ws://localhost:8001");
+        const ws = new WebSocket("ws" + CONFIG["host"].slice(4));
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -111,7 +111,7 @@ export default function RoomPage() {
             }
           }
           if (data.type === "gameStart") {
-            navigate(`/room/${id}/game`, { state: {playerID, room: data} });
+            navigate(`/room/${id}/game`, { state: {id, playerID, room: data} });
           }
         };
 
@@ -201,6 +201,11 @@ export default function RoomPage() {
       alert(`目前玩家數 (${players.length}) 未達最大玩家數 (${maxPlayers})，請房主調整相關設定`);
       return;
     }
+    await fetch(`${CONFIG["host"]}/api/game/${id}/createRoom`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ players: players }),
+    });
     await fetch(`${CONFIG["host"]}/api/rooms/${id}/startGame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

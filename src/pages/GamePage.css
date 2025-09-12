@@ -42,11 +42,7 @@
   background-color: #f0f0f0;
 }
 
-.extra-rect {
-  background-color: #ffcccb;
-}
-
-.self-player {
+.active-turn {
   border: 4px solid red; /* 邊框變粗並變紅 */
 }
 
@@ -57,4 +53,18 @@
   background-color: rgba(128, 128, 128, 0.8); /* 灰色半透明 */
   color: white;                    /* 字體反白 */
   font-size: 24px;
+}
+
+#neutral {
+  background-image: url('/location/guestroom.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#execute {
+  background-image: url('/location/boiler.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }

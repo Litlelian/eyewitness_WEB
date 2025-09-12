@@ -1,5 +1,5 @@
 // game.js
-export const LOCATIONS = ["lounge", "gallery", "pollball", "study", "entrance", "restaurant"];
+export const LOCATIONS = ["lounge", "gallery", "poolball", "study", "entrance", "restaurant"];
 export const NEUTRAL_LOCATIONS = ["questroom"];
 export const EXECUTE_LOCATIONS = ["boiler"];
 

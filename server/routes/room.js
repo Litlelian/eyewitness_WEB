@@ -37,7 +37,7 @@ router.post("/:id/addPlayers", (req, res) => {
   // 初始化房間（如果不存在）
   if (!rooms[id]) {
     console.log(`房間 ${id} 被創建`);
-    rooms[id] = { players: [], maxPlayers: 6, gameLevel: 8, hostSlot: 0, gamePlaying: false};
+    rooms[id] = { players: [], maxPlayers: 3, gameLevel: 1, hostSlot: 0, gamePlaying: false};
   }
 
   const room = rooms[id];

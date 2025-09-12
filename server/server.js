@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { WebSocketServer } from "ws";
 
 import roomsRouter from "./routes/room.js";
+import inGameRouter from "./routes/inGame.js";
 
 import fs from "fs";
 import path from "path";
@@ -98,6 +99,7 @@ apiApp.use((req, res, next) => {
 });
 
 apiApp.use("/api/rooms", roomsRouter);
+apiApp.use("/api/game", inGameRouter);
 
 const API_PORT = CONFIG["port"];
 server.listen(API_PORT, () => {

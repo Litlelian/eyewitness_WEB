@@ -32,11 +32,11 @@
   font-size: 12px;
 }
 
-.player-name {
-  font-size: 14px;
+.slot-player-name {
+  font-size: 18px;
 }
 
 .empty-slot {
-  font-size: 14px;
+  font-size: 18px;
   color: #666;
 }

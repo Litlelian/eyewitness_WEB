@@ -1,19 +1,11 @@
 import React from "react";
 import LEVEL_CONFIG from "../config/levelConfig.json";
+import ZHROLE_CONFIG from "../config/zhrole.json";
 import "./RoleGrid.css";
 
 export default function RoleGrid({ level, maxPlayers }) {
   const levelConfig = LEVEL_CONFIG[level];
-  const zhRole = {
-    "killer": "殺人魔",
-    "accomplice": "共犯",
-    "bomber": "炸彈客",
-    "lawyer": "律師",
-    "businessman": "富商",
-    "detective": "偵探",
-    "butler": "管家",
-    "guest": "訪客",
-  }
+  const zhRole = ZHROLE_CONFIG
   if (!levelConfig) {
     return <div className="role-grid">未知的遊戲等級</div>;
   }

@@ -19,7 +19,7 @@ const PlayerGrid = ({ players, maxPlayers, hostSlot, isHost, onPlayerAction }) =
         {player ? (
           <>
             {player.slot === hostSlot && <span className="host-label">房主</span>}
-            <span className="player-name">{player.name}</span>
+            <span className="slot-player-name">{player.name}</span>
           </>
         ) : (
           <span className="empty-slot">空位</span>
