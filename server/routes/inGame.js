@@ -1,6 +1,6 @@
 // server/routes/inGame.js
 import express from "express";
-import { assignLocations } from "../../src/game/game.js"
+import { assignLocations, shuffle } from "../../src/game/game.js"
 const router = express.Router();
 
 const rooms = {};
@@ -20,9 +20,9 @@ router.get("/:id", (req, res) => {
 // API : 創建該遊戲房間的資料
 router.post("/:id/createRoom", (req, res) => {
   const { id } = req.params;
-	const { players } = req.body;
+  const { players } = req.body;
 
-	if (!id || !Array.isArray(players)) {
+  if (!id || !Array.isArray(players)) {
     return res.status(400).json({ error: "缺少 id 或 players 陣列" });
   }
 
@@ -56,6 +56,22 @@ router.post("/:id/createRoom", (req, res) => {
 	});
 
 	return res.json(room);
+});
+
+router.post("/:id/shuffle", (req, res) => {
+  const { id } = req.params;
+  const { level, maxPlayers } = req.body;
+
+  if (!id || !level || !maxPlayers) {
+    return res.status(400).json({ error: "缺少 id、level 或 maxPlayer 參數" });
+  }
+
+  const shuffled = shuffle(level, maxPlayers);
+  rooms[id]["order"] = shuffled;
+
+  console.log(rooms[id]);
+
+  return res.json(shuffled);
 });
 
 // 將 router export

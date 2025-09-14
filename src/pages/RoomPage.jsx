@@ -206,6 +206,11 @@ export default function RoomPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ players: players }),
     });
+    await fetch(`${CONFIG["host"]}/api/game/${id}/shuffle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level: level, maxPlayers: maxPlayers }),
+    });
     await fetch(`${CONFIG["host"]}/api/rooms/${id}/startGame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

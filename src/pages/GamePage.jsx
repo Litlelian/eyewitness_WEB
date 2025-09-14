@@ -98,7 +98,7 @@ export default function GamePage() {
       {/* 提示 */}
       <div>
         {currentTurn === playerID && (
-          <h3>輪到你了</h3>
+          <h2>輪到你了</h2>
         )}
       </div>
     </div>
