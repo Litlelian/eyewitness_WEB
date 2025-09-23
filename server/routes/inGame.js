@@ -55,6 +55,9 @@ router.post("/:id/createRoom", (req, res) => {
 		room.players[pid].location = mapping[pid];
 	});
 
+  // 刪除第一位玩家的location
+  room.availableLocations = Object.values(mapping).filter((location) => location != room.players[firstPlayerID].location)
+
 	return res.json(room);
 });
 
@@ -68,8 +71,6 @@ router.post("/:id/shuffle", (req, res) => {
 
   const shuffled = shuffle(level, maxPlayers);
   rooms[id]["order"] = shuffled;
-
-  console.log(rooms[id]);
 
   return res.json(shuffled);
 });

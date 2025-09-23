@@ -17,9 +17,9 @@ router.get("/:id", (req, res) => {
 
   res.json({
     players: room?.players || [],
-    maxPlayers: room?.maxPlayers || 6,
+    maxPlayers: room?.maxPlayers || 3,
     hostSlot: room?.hostSlot || null,
-    gameLevel: room?.gameLevel || 8,
+    gameLevel: room?.gameLevel || 1,
     gamePlaying: false,
   });
 });

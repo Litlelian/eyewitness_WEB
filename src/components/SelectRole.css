@@ -1,0 +1,136 @@
+.select-role-container {
+  width: 90vw;
+  background-color: rgba(128, 128, 128, 0.5);
+  border: 3px solid black;
+  border-radius: 10px;
+  padding: 16px; 
+}
+
+.role-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.role-card {
+  width: 120px;
+  height: 120px;
+  border: 3px solid #333;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.role-card img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.role-card.selected {
+  border-color: gold;
+  box-shadow: 0 0 10px gold;
+}
+
+.role-name {
+  margin-top: 12px;
+  font-size: 25px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.role-intro {
+  font-size: 20px;
+  font-weight: 500;
+  color: #000000;
+  text-align: center;
+}
+
+.select-options {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.custom-select {
+  position: relative;
+  width: 180px;
+  margin-right: 20px;
+  background: #222;
+  border-radius: 12px;
+  padding: 10px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.select-label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #aaa;
+}
+
+.select-trigger {
+  background: #333;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.options {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  background: #333;
+  border-radius: 8px;
+  transition: max-height 0.3s ease;
+}
+
+.custom-select:hover .options {
+  max-height: 200px;
+}
+
+.options li {
+  padding: 10px;
+  transition: background 0.2s;
+}
+
+.options li:hover {
+  background: #555;
+}
+
+.options li.active {
+  background: #f7b733;
+  color: #000;
+  border-radius: 6px;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #f7b733, #fc4a1a);
+  border: none;
+  border-radius: 12px;
+  padding: 6px 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.confirm-btn:disabled {
+  background: #888;
+  cursor: not-allowed;
+}

@@ -1,8 +1,8 @@
+import SelectRole from "../components/SelectRole";
+
 import React, { useMemo, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import CONFIG from "../config/config.json";
-import ZHLOCATION_CONFIG from "../config/zhlocation.json";
-import { assignLocations } from "../game/game";
 import "./GamePage.css";
 
 export default function GamePage() {
@@ -17,11 +17,6 @@ export default function GamePage() {
   if (!room) {
     return <div>房間資料不存在，請從房間進入遊戲。</div>;
   }
-
-  useEffect(() => {
-    console.log(players);
-    console.log(currentTurn);
-  }, [players, currentTurn]);
 
   useEffect(() => {
     if(!playerID) return;
@@ -101,6 +96,9 @@ export default function GamePage() {
           <h2>輪到你了</h2>
         )}
       </div>
+      {currentTurn === playerID && (
+        <SelectRole roomId={id} playerID={playerID} level={room.gameLevel} />
+      )}
     </div>
   );
 }
