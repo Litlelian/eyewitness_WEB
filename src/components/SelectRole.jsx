@@ -27,7 +27,7 @@ export default function SelectRole({ roomId, playerID, level }) {
         const data = await res.json();
         setOrder(data.order.order || []);
         setFirstTwo(data.order.order.slice(0, 2));
-        setIsLastPlayer(data.order.order.filter((r) => r == null).length === 1);
+        setIsLastPlayer(data.availableLocations.length === 0);
         setAvailableLocations(data.availableLocations)
       } catch (err) {
         console.error("Error fetching room:", err);
@@ -95,7 +95,7 @@ export default function SelectRole({ roomId, playerID, level }) {
                 {isLastPlayer ? (
                   <li
                     key="客房"
-                    onClick={() => setSelectedLocation("客房")}
+                    onClick={() => setSelectedLocation("questroom")}
                     className={selectedLocation === "客房" ? "active" : ""}
                   >
                     客房
@@ -118,13 +118,32 @@ export default function SelectRole({ roomId, playerID, level }) {
             <button
               className="confirm-btn"
               disabled={!selectedRole || !selectedSayRole || !selectedLocation}
-              onClick={() => {
+              onClick={async () => {
                 console.log("確定選擇：", {
                   selectedRole,
                   selectedSayRole,
                   selectedLocation,
                 });
-                // TODO: 呼叫 API，把選擇送到後端
+                try {
+                  // 先呼叫 selectRole 更新自己角色
+                  const selectRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/selectRole`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ role: selectedRole }),
+                  });
+                  if (!selectRes.ok) throw new Error("selectRole API 失敗");
+
+                  // 再呼叫 nextPlayer 指定下一位玩家和地點
+                  const nextRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/nextPlayer`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ saidRole: selectedSayRole, nextLocation: selectedLocation }),
+                  });
+                  if (!nextRes.ok) throw new Error("nextPlayer API 失敗");
+
+                } catch (err) {
+                  console.error(err);
+                }
               }}
             >
               確定選擇

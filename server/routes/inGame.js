@@ -66,13 +66,69 @@ router.post("/:id/shuffle", (req, res) => {
   const { level, maxPlayers } = req.body;
 
   if (!id || !level || !maxPlayers) {
-    return res.status(400).json({ error: "缺少 id、level 或 maxPlayer 參數" });
+    return res.status(400).json({ error: "缺少 room id、level 或 maxPlayer 參數" });
   }
 
   const shuffled = shuffle(level, maxPlayers);
   rooms[id]["order"] = shuffled;
 
   return res.json(shuffled);
+});
+
+router.post("/:id/selectRole", (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  if (!id || !role) {
+    return res.status(400).json({ error: "缺少 room id 或 role 參數" });
+  }
+
+  const room = rooms[id];
+  const currPlayerID = room.currPlayerID;
+
+  room["players"][currPlayerID].role = role;
+
+  // 從order刪除被選走的角色
+  for (let i = 0; i < 2; i++) {
+    if (room.order.order[i] === role) {
+      room.order.order.splice(i, 1);
+      break;
+    }
+  }
+
+  return res.json(room);
+});
+
+router.post("/:id/nextPlayer", (req, res) => {
+  const { id } = req.params;
+  const { saidRole, nextLocation } = req.body;
+
+  if (!id || !saidRole || !nextLocation) {
+    return res.status(400).json({ error: "缺少 room id 、saidRole 或 nextLocation 參數" });
+  }
+
+  const room = rooms[id];
+
+  if (nextLocation === "questroom") {
+    room.locationResult = {};
+    Object.keys(room.players).forEach((pid) => {
+      room.locationResult[room.players[pid].location] = room.players[pid].role;
+    });
+    room.locationResult["guestroom"] = room.order.order[0];
+  }
+
+  // 刪除此次目標的 location
+  room.availableLocations = Object.values(room.availableLocations).filter((location) => location != nextLocation)
+
+  Object.keys(room.players).forEach((pid) => {
+    if (room.players[pid].location === nextLocation) {
+      room.currPlayerID = pid;
+    }
+  });
+
+  req.broadcast(id, { type: "nextTurn", ...room });
+
+  return res.json(room);
 });
 
 // 將 router export

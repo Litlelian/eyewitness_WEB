@@ -27,7 +27,10 @@ const rooms = {};
 
 // 廣播函式
 export function broadcast(roomID, message) {
-  if (!rooms[roomID]) return;
+  if (!rooms[roomID]) {
+    console.log(`Web Socket 找不到房間 ${roomID}`);
+    return;
+  };
   const data = JSON.stringify(message);
   for (const client of rooms[roomID]) {
     if (client.readyState === client.OPEN) {
@@ -42,16 +45,30 @@ wss.on("connection", (ws) => {
     const data = JSON.parse(msg);
     if (data.type === "joinRoom") {
       const { roomID, playerID } = data;
+      // 之後會寫遊戲結束返回房間的方法
       ws.roomID = roomID;
       ws.playerID = playerID;
+      ws.gameState = "room";
 
       if (!rooms[roomID]) rooms[roomID] = new Set();
       rooms[roomID].add(ws);
     }
     if (data.type === "startGame") {
-      const { roomID } = data;
-      console.log(`🎮 Room ${roomID} 遊戲開始`);
+      const { roomID, playerID } = data;
       broadcast(roomID, { type: "gameStart", roomID });
+      console.log(`🎮 Room ${roomID} : ${playerID} 進入遊戲`);
+      // 刪除 RoomPage 留下的 Socket
+      if (rooms[roomID]) {
+        for (const clientWs of rooms[roomID]) {
+          if (clientWs.gameState === "room") {
+            rooms[roomID].delete(clientWs);
+          }
+        }
+      }
+      ws.roomID = roomID;
+      ws.playerID = playerID;
+      ws.gameState = "game";
+      rooms[roomID].add(ws);
     }
   });
 

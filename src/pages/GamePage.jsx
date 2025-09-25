@@ -40,14 +40,15 @@ export default function GamePage() {
       ws.onopen = () => {
         console.log("GamePage WebSocket 已連線");
         // 告訴伺服器我進入了遊戲頁
-        ws.send(JSON.stringify({ type: "joinGame", roomID: room.id, playerID }));
+        ws.send(JSON.stringify({ type: "startGame", roomID: id, playerID }));
       };
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
-        if (data.type === "turnStart") {
-          setCurrentTurn(data.playerID); // 更新目前輪到誰
+        if (data.type === "nextTurn") {
+          setCurrentTurn(data.currPlayerID); // 更新目前輪到誰
+          console.log(`輪到 ${data.players[data.currPlayerID].name}`)
         }
       };
 
