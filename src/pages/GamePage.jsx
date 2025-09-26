@@ -1,5 +1,7 @@
 import SelectRole from "../components/SelectRole";
 import ChatBox from "../components/ChatBox";
+import ZHROLE_CONFIG from "../config/zhrole.json";
+import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 
 import React, { useMemo, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -52,6 +54,15 @@ export default function GamePage() {
           setCurrentTurn(data.currPlayerID); // 更新目前輪到誰
           console.log(`輪到 ${data.players[data.currPlayerID].name}`)
         }
+        if (data.type === "chatMessage") {
+          const message = {
+            id: Date.now(),
+            "type": "system",
+            "sender": data.playerName,
+            "text":`我看見 ${ZHROLE_CONFIG[data.saidRole]} 走向 ${ZHLOCATION_CONFIG[data.nextLocation]}`
+          }
+          setMessages((prev) => [message, ...prev]);
+        }
       };
 
       ws.onclose = () => {
@@ -65,7 +76,7 @@ export default function GamePage() {
   }, [room.id, playerID]);
 
   const handleNewMessage = (msg) => {
-    setMessages((prev) => [...prev, { id: Date.now(), ...msg }]);
+    // setMessages((prev) => [...prev, { id: Date.now(), ...msg }]);
   };
 
   return (

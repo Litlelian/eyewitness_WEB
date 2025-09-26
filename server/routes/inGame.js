@@ -117,6 +117,8 @@ router.post("/:id/nextPlayer", (req, res) => {
     room.locationResult["guestroom"] = room.order.order[0];
   }
 
+  req.broadcast(id, { type: "chatMessage", playerName: `${room.players[room.currPlayerID].name}`, saidRole: saidRole, nextLocation: nextLocation});
+
   // 刪除此次目標的 location
   room.availableLocations = Object.values(room.availableLocations).filter((location) => location != nextLocation)
 
