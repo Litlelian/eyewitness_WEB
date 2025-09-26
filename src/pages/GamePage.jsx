@@ -1,4 +1,5 @@
 import SelectRole from "../components/SelectRole";
+import ChatBox from "../components/ChatBox";
 
 import React, { useMemo, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -10,6 +11,7 @@ export default function GamePage() {
   const { id, playerID, room } = location.state || {};
   const [currentTurn, setCurrentTurn] = useState(null);
   const [players, setPlayers] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   const hasJoinedRef = useRef(false);
   const wsRef = useRef(null);
@@ -62,6 +64,10 @@ export default function GamePage() {
     };
   }, [room.id, playerID]);
 
+  const handleNewMessage = (msg) => {
+    setMessages((prev) => [...prev, { id: Date.now(), ...msg }]);
+  };
+
   return (
     <div className="board-container">
       {/* 上方玩家區域 */}
@@ -91,15 +97,27 @@ export default function GamePage() {
         <div className="rect" id="execute"></div>
       </div>
 
-      {/* 提示 */}
-      <div>
-        {currentTurn === playerID && (
-          <h2>輪到你了</h2>
-        )}
+      <div className="player-UI">
+        <div className={"ui-layout"}>
+          {currentTurn === playerID && (
+            <div className="select-role-wrapper">
+              <SelectRole
+                roomId={id}
+                playerID={playerID}
+                level={room.gameLevel}
+                onMessage={handleNewMessage}
+              />
+            </div>
+          )}
+          <div className="chatbox-wrapper"
+          style={{
+              width: currentTurn === playerID ? "30%" : "100%", // 寬度切換
+            }}
+          >
+            <ChatBox messages={messages} />
+          </div>
+        </div>
       </div>
-      {currentTurn === playerID && (
-        <SelectRole roomId={id} playerID={playerID} level={room.gameLevel} />
-      )}
     </div>
   );
 }

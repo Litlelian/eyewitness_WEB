@@ -1,0 +1,28 @@
+.chat-container {
+  min-width: 400px;
+  height: 100%;
+  background-color: rgba(128, 128, 128, 0.5);
+  border: 3px solid black;
+  border-radius: 10px;
+  padding: 16px; 
+  overflow-y: auto;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-message {
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.chat-message.system {
+  background: #e9ecef;
+  color: #333;
+}
+
+.chat-message.player {
+  background: #d1e7dd;
+  color: #0f5132;
+}

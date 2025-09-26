@@ -6,8 +6,7 @@ import LEVEL_CONFIG from "../config/levelConfig.json";
 import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 import "./SelectRole.css";
 
-export default function SelectRole({ roomId, playerID, level }) {
-  const [order, setOrder] = useState([]);
+export default function SelectRole({ roomId, playerID, level, onMessage }) {
   const [firstTwo, setFirstTwo] = useState([]);
   const [isLastPlayer, setIsLastPlayer ] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -25,7 +24,6 @@ export default function SelectRole({ roomId, playerID, level }) {
         });
         if (!res.ok) throw new Error("Failed to fetch room");
         const data = await res.json();
-        setOrder(data.order.order || []);
         setFirstTwo(data.order.order.slice(0, 2));
         setIsLastPlayer(data.availableLocations.length === 0);
         setAvailableLocations(data.availableLocations)
@@ -37,121 +35,132 @@ export default function SelectRole({ roomId, playerID, level }) {
     if (roomId) fetchRoom();
   }, [roomId]);
 
+  const handleConfirm = async () => {
+    console.log("確定選擇：", {
+      selectedRole,
+      selectedSayRole,
+      selectedLocation,
+    });
+    try {
+      // 先呼叫 selectRole 更新自己角色
+      const selectRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/selectRole`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selectedRole }),
+      });
+      if (!selectRes.ok) throw new Error("selectRole API 失敗");
+
+      // 再呼叫 nextPlayer 指定下一位玩家和地點
+      const nextRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/nextPlayer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ saidRole: selectedSayRole, nextLocation: selectedLocation }),
+      });
+      if (!nextRes.ok) throw new Error("nextPlayer API 失敗");
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    onMessage({
+      sender: "系統",
+      text: `玩家 ${playerID} : 我看到 ${selectedSayRole} 走到了 ${selectedLocation}`,
+      type: "system",
+    });
+  };
+
   return (
     <div className="select-role-container">
-      <div className="role-cards">
-        {firstTwo.map((role, idx) => (
-          <div
-            key={`role-${idx}`}
-            className={`role-card ${selectedRoleID === idx ? "selected" : ""}`}
-            onClick={() => {
-              setSelectedRole(role);
-              setSelectedRoleID(idx);
-            }}
-          >
-            <img src={`/roles/${role}.png`} alt={role} />
+      <div className="upper-UI">
+        <div className="role-cards">
+          {firstTwo.map((role, idx) => (
+            <div
+              key={`role-${idx}`}
+              className={`role-card ${selectedRoleID === idx ? "selected" : ""}`}
+              onClick={() => {
+                setSelectedRole(role);
+                setSelectedRoleID(idx);
+              }}
+            >
+              <img src={`/roles/${role}.png`} alt={role} />
+            </div>
+          ))}
+        </div>
+        {/* 選項區域 */}
+        <div className="select-options">
+          {/* 選職業 */}
+          <div className="custom-select">
+            <div className="select-label">某職業：</div>
+            <div className="select-trigger">
+              {selectedSayRole ? ZHROLE_CONFIG[selectedSayRole] : "請選擇職業"}
+            </div>
+            <ul className="options">
+              {LEVEL_CONFIG[level].roles.map((role) => (
+                <li
+                  key={role}
+                  onClick={() => setSelectedSayRole(role)}
+                  className={selectedSayRole === role ? "active" : ""}
+                >
+                  {ZHROLE_CONFIG[role]}
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
+
+          {/* 選地點 */}
+          <div className="custom-select">
+            <div className="select-label">某地點：</div>
+            <div className="select-trigger">
+              {selectedLocation ? ZHLOCATION_CONFIG[selectedLocation] : "請選擇地點"}
+            </div>
+            <ul className="options">
+              {isLastPlayer ? (
+                <li
+                  key="客房"
+                  onClick={() => setSelectedLocation("questroom")}
+                  className={selectedLocation === "客房" ? "active" : ""}
+                >
+                  客房
+                </li>
+              ) : (
+                availableLocations?.map((loc) => (
+                  <li
+                    key={loc}
+                    onClick={() => setSelectedLocation(loc)}
+                    className={selectedLocation === loc ? "active" : ""}
+                  >
+                    {ZHLOCATION_CONFIG[loc]}
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </div>
+        {/* 確認按鈕 */}
+        <div className="upper-btn-UI">
+          <button
+            className="confirm-btn"
+            disabled={!selectedRole || !selectedSayRole || !selectedLocation}
+            onClick={handleConfirm}
+          >
+            確定選擇
+          </button>
+        </div>
       </div>
 
       {/* 根據選擇顯示角色介紹 */}
-      {selectedRole && (
-        <>
-          <div className="role-name">
-            {ZHROLE_CONFIG[selectedRole]}
-          </div>
-          <div className="role-intro">
-            <p>{ROLE_CONFIG[selectedRole]}</p>
-          </div>
-
-          {/* 選項區域 */}
-          <div className="select-options">
-            {/* 選職業 */}
-            <div className="custom-select">
-              <div className="select-label">某職業：</div>
-              <div className="select-trigger">
-                {selectedSayRole ? ZHROLE_CONFIG[selectedSayRole] : "請選擇職業"}
-              </div>
-              <ul className="options">
-                {LEVEL_CONFIG[level].roles.map((role) => (
-                  <li
-                    key={role}
-                    onClick={() => setSelectedSayRole(role)}
-                    className={selectedSayRole === role ? "active" : ""}
-                  >
-                    {ZHROLE_CONFIG[role]}
-                  </li>
-                ))}
-              </ul>
+      <div className="lower-UI">
+        {selectedRole && (
+          <>
+            <div className="role-name">
+              {ZHROLE_CONFIG[selectedRole]}
             </div>
-
-            {/* 選地點 */}
-            <div className="custom-select">
-              <div className="select-label">某地點：</div>
-              <div className="select-trigger">
-                {selectedLocation ? ZHLOCATION_CONFIG[selectedLocation] : "請選擇地點"}
-              </div>
-              <ul className="options">
-                {isLastPlayer ? (
-                  <li
-                    key="客房"
-                    onClick={() => setSelectedLocation("questroom")}
-                    className={selectedLocation === "客房" ? "active" : ""}
-                  >
-                    客房
-                  </li>
-                ) : (
-                  availableLocations?.map((loc) => (
-                    <li
-                      key={loc}
-                      onClick={() => setSelectedLocation(loc)}
-                      className={selectedLocation === loc ? "active" : ""}
-                    >
-                      {ZHLOCATION_CONFIG[loc]}
-                    </li>
-                  ))
-                )}
-              </ul>
+            <div className="role-intro">
+              <p>{ROLE_CONFIG[selectedRole]}</p>
             </div>
-
-            {/* 確認按鈕 */}
-            <button
-              className="confirm-btn"
-              disabled={!selectedRole || !selectedSayRole || !selectedLocation}
-              onClick={async () => {
-                console.log("確定選擇：", {
-                  selectedRole,
-                  selectedSayRole,
-                  selectedLocation,
-                });
-                try {
-                  // 先呼叫 selectRole 更新自己角色
-                  const selectRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/selectRole`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ role: selectedRole }),
-                  });
-                  if (!selectRes.ok) throw new Error("selectRole API 失敗");
-
-                  // 再呼叫 nextPlayer 指定下一位玩家和地點
-                  const nextRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/nextPlayer`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ saidRole: selectedSayRole, nextLocation: selectedLocation }),
-                  });
-                  if (!nextRes.ok) throw new Error("nextPlayer API 失敗");
-
-                } catch (err) {
-                  console.error(err);
-                }
-              }}
-            >
-              確定選擇
-            </button>
-          </div>
-        </>
-      )}
-      
+          </>
+        )}
+      </div>
     </div>
   );
 }

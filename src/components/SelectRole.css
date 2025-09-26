@@ -1,9 +1,29 @@
 .select-role-container {
-  width: 90vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   background-color: rgba(128, 128, 128, 0.5);
   border: 3px solid black;
   border-radius: 10px;
-  padding: 16px; 
+  padding: 16px;
+  height: 100%
+}
+
+.upper-UI {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  height: 50%;
+}
+
+.upper-btn-UI {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.lower-UI {
+  margin-bottom: 20px;
 }
 
 .role-cards {
@@ -11,7 +31,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-top: 16px;
+  margin-top: 5px;
 }
 
 .role-card {
@@ -92,15 +112,18 @@
   background: #333;
   border-radius: 8px;
   transition: max-height 0.3s ease;
+  overflow-y: auto;
 }
 
 .custom-select:hover .options {
-  max-height: 200px;
+  max-height: calc(2.5 * 40px);
 }
 
 .options li {
-  padding: 10px;
-  transition: background 0.2s;
+  height: 40px;
+  line-height: 40px;
+  padding: 0 12px;
+  cursor: pointer;
 }
 
 .options li:hover {
@@ -111,6 +134,20 @@
   background: #f7b733;
   color: #000;
   border-radius: 6px;
+}
+
+.options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.options::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.options::-webkit-scrollbar-thumb {
+  background-color: #ffd633; /* 黃色 */
+  border-radius: 4px;
 }
 
 .confirm-btn {
