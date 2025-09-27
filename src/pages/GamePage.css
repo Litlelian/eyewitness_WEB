@@ -88,11 +88,17 @@
 }
 
 .select-role-wrapper {
+  background-color: rgba(128, 128, 128, 0.5);
+  border: 3px solid black;
+  border-radius: 10px;
   flex: 1;
   transition: all 0.5s ease; /* 動畫過渡 */
 }
 
 .chatbox-wrapper {
+  background-color: rgba(128, 128, 128, 0.5);
+  border: 3px solid black;
+  border-radius: 10px;
   transition: all 0.5s ease; /* 寬度動畫 */
   min-width: 200px;
 }

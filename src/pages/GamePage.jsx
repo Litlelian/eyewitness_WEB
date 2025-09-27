@@ -52,7 +52,7 @@ export default function GamePage() {
 
         if (data.type === "nextTurn") {
           setCurrentTurn(data.currPlayerID); // 更新目前輪到誰
-          console.log(`輪到 ${data.players[data.currPlayerID].name}`)
+          if (data.currPlayerID != -1) console.log(`輪到 ${data.players[data.currPlayerID].name}`)
         }
         if (data.type === "chatMessage") {
           const message = {
@@ -60,6 +60,16 @@ export default function GamePage() {
             "type": "system",
             "sender": data.playerName,
             "text":`我看見 ${ZHROLE_CONFIG[data.saidRole]} 走向 ${ZHLOCATION_CONFIG[data.nextLocation]}`
+          }
+          setMessages((prev) => [message, ...prev]);
+        }
+        if (data.type === "voting") {
+          setCurrentTurn(data.currPlayerID);
+          const message = {
+            id: Date.now(),
+            "type": "system",
+            "sender": "選角階段結束",
+            "text": "進入投票環節"
           }
           setMessages((prev) => [message, ...prev]);
         }
@@ -110,19 +120,23 @@ export default function GamePage() {
 
       <div className="player-UI">
         <div className={"ui-layout"}>
-          {currentTurn === playerID && (
-            <div className="select-role-wrapper">
+            <div className="select-role-wrapper"
+            style={{
+              width: currentTurn === playerID ? "70%" : "51%", // 寬度切換
+            }}
+            >
+            {currentTurn === playerID && (
               <SelectRole
                 roomId={id}
                 playerID={playerID}
                 level={room.gameLevel}
                 onMessage={handleNewMessage}
               />
-            </div>
-          )}
+            )}
+          </div>
           <div className="chatbox-wrapper"
           style={{
-              width: currentTurn === playerID ? "30%" : "100%", // 寬度切換
+              width: currentTurn === playerID ? "30%" : "49%", // 寬度切換
             }}
           >
             <ChatBox messages={messages} />

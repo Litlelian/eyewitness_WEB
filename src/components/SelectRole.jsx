@@ -117,7 +117,7 @@ export default function SelectRole({ roomId, playerID, level, onMessage }) {
               {isLastPlayer ? (
                 <li
                   key="客房"
-                  onClick={() => setSelectedLocation("questroom")}
+                  onClick={() => setSelectedLocation("guestroom")}
                   className={selectedLocation === "客房" ? "active" : ""}
                 >
                   客房

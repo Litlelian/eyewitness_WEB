@@ -1,6 +1,6 @@
 // game.js
 export const LOCATIONS = ["lounge", "gallery", "poolball", "study", "entrance", "restaurant"];
-export const NEUTRAL_LOCATIONS = ["questroom"];
+export const NEUTRAL_LOCATIONS = ["guestroom"];
 export const EXECUTE_LOCATIONS = ["boiler"];
 import LEVEL_CONFIG from "../config/levelConfig.json" with { type: "json" };
 

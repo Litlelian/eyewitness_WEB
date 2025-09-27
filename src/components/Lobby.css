@@ -7,7 +7,7 @@
   height: 100vh;          /* 滿高，方便垂直置中 */
   gap: 1.5rem;            /* 元素間距，上下不壅擠 */
   padding: 1rem;          /* 頁面內距 */
-  font-size: 2.5vh;
+  font-size: 3vw;
 }
 
 .lobby-input {
@@ -22,7 +22,7 @@
   display: flex;
   justify-content: space-around;
   width: 50vw;
-  height: 5vh;
+  height: 5vw;
 }
 
 .lobby-buttons button {
@@ -30,7 +30,7 @@
   background-color: chocolate;
   color: white;
   height: 100%;
-  padding: 2vw;
+  padding: 1vw;
   border-radius: 8px;
-  font-size: 1.5vh;
+  font-size: 2vw;
 }

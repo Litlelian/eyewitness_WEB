@@ -109,7 +109,7 @@ router.post("/:id/nextPlayer", (req, res) => {
 
   const room = rooms[id];
 
-  if (nextLocation === "questroom") {
+  if (nextLocation === "guestroom") {
     room.locationResult = {};
     Object.keys(room.players).forEach((pid) => {
       room.locationResult[room.players[pid].location] = room.players[pid].role;
@@ -128,7 +128,14 @@ router.post("/:id/nextPlayer", (req, res) => {
     }
   });
 
-  req.broadcast(id, { type: "nextTurn", ...room });
+  if (nextLocation === "guestroom") {
+    console.log(`Room ${id} 遊戲階段一結束，進入投票環節`);
+    room.currPlayerID = -1;
+    req.broadcast(id, { type: "voting", ...room.locationResult });
+  }
+  else {
+    req.broadcast(id, { type: "nextTurn", ...room });
+  } 
 
   return res.json(room);
 });
