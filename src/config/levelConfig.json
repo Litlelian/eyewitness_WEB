@@ -1,4 +1,11 @@
 {
+  "0": {
+    "range": [3],
+    "roles": ["killer", "accomplice", "bomber", "lawyer", "businessman", "detective", "butler", "guest"],
+    "distribution": {
+      "3": { "killer": 1, "lawyer": 1 , "detective": 1, "butler": 1}
+    }
+  },
   "1": {
     "range": [3, 4],
     "roles": ["killer", "guest"],

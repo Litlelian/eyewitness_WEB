@@ -1,5 +1,6 @@
 import SelectRole from "../components/SelectRole";
 import ChatBox from "../components/ChatBox";
+import ROLE_CONFIG from "../config/role_intro.json";
 import ZHROLE_CONFIG from "../config/zhrole.json";
 import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 
@@ -12,6 +13,8 @@ export default function GamePage() {
   const location = useLocation();
   const { id, playerID, room } = location.state || {};
   const [currentTurn, setCurrentTurn] = useState(null);
+  const [confirmedRole, setConfirmedRole] = useState(null);
+  const [selectedTarget, setSelectedTarget] = useState(null);
   const [players, setPlayers] = useState(null);
   const [messages, setMessages] = useState([]);
 
@@ -69,7 +72,7 @@ export default function GamePage() {
             id: Date.now(),
             "type": "system",
             "sender": "選角階段結束",
-            "text": "進入投票環節"
+            "text": "進入投票環節，點擊你想投的位置，想棄票就投鍋爐室"
           }
           setMessages((prev) => [message, ...prev]);
         }
@@ -85,8 +88,9 @@ export default function GamePage() {
     };
   }, [room.id, playerID]);
 
-  const handleNewMessage = (msg) => {
-    // setMessages((prev) => [...prev, { id: Date.now(), ...msg }]);
+  const handleRectClick = (target) => {
+    console.log(target);
+    setSelectedTarget(target.id);
   };
 
   return (
@@ -96,9 +100,9 @@ export default function GamePage() {
         {room.players.map((p) => (
           <div
             key={p.id}
-            className={`rect player-rect ${p.id === playerID ? "self-player" : ""} ${
-              p.id === currentTurn ? "active-turn" : ""
-            }`}
+            className={`rect player-rect ${p.id === playerID ? "self-player" : ""}
+            ${p.id === currentTurn ? "active-turn" : ""} 
+            ${(selectedTarget === p.id && currentTurn === -1) ? "loc-selected" : ""}`}
             style={{
               backgroundImage: players?.[p.id]?.location
               ? `url(/location/${players[p.id].location}.png)`
@@ -106,6 +110,7 @@ export default function GamePage() {
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
+            onClick={() => handleRectClick(p)}
           >
             <span className="player-name">{p.name}</span>
           </div>
@@ -114,8 +119,18 @@ export default function GamePage() {
 
       {/* 下方兩個額外長方形 */}
       <div className="extra-row">
-        <div className="rect" id="neutral"></div>
-        <div className="rect" id="execute"></div>
+        <div className="two-loc">
+          <div className={`rect ${(selectedTarget === "neutral" && currentTurn === -1) ? "loc-selected" : ""}`} 
+          id="neutral" 
+          onClick={() => handleRectClick({"id": "neutral"})}></div>
+          <div className={`rect ${(selectedTarget === "execute" && currentTurn === -1) ? "loc-selected" : ""}`}
+          id="execute" 
+          onClick={() => handleRectClick({"id": "execute"})}>
+            <span className={`${currentTurn === -1 ? "" : "hidden"} player-name`}>棄票</span>
+          </div>
+        </div>
+        <button className={`confirm-btn ${currentTurn === -1 ? "" : "hidden"}`} 
+        disabled={!selectedTarget}>確認投票</button>
       </div>
 
       <div className="player-UI">
@@ -125,15 +140,35 @@ export default function GamePage() {
               width: currentTurn === playerID ? "70%" : "51%", // 寬度切換
             }}
             >
-            {currentTurn === playerID && (
-              <SelectRole
-                roomId={id}
-                playerID={playerID}
-                level={room.gameLevel}
-                onMessage={handleNewMessage}
-              />
-            )}
-          </div>
+              {currentTurn !== playerID && !confirmedRole && players &&(
+                <div className="waiting-turn">
+                  <h3>現在輪到：{players[currentTurn]?.name}</h3>
+                </div>
+              )}
+
+              {currentTurn === playerID && (
+                <SelectRole
+                  roomId={id}
+                  playerID={playerID}
+                  level={room.gameLevel}
+                  setConfirmedRole={setConfirmedRole}
+                />
+              )}
+
+              {confirmedRole && (
+                <div className="confirmed-role">
+                  <h3>你選擇的是：{ZHROLE_CONFIG[confirmedRole]}</h3>
+                  <img
+                    src={`/roles/${confirmedRole}.png`}
+                    alt={ZHROLE_CONFIG[confirmedRole]}
+                    className="role-image"
+                  />
+                  <p className="role-description">
+                    {ROLE_CONFIG[confirmedRole]}
+                  </p>
+                </div>
+              )}
+            </div>
           <div className="chatbox-wrapper"
           style={{
               width: currentTurn === playerID ? "30%" : "49%", // 寬度切換

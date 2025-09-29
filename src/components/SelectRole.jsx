@@ -6,7 +6,7 @@ import LEVEL_CONFIG from "../config/levelConfig.json";
 import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 import "./SelectRole.css";
 
-export default function SelectRole({ roomId, playerID, level, onMessage }) {
+export default function SelectRole({ roomId, playerID, level, setConfirmedRole }) {
   const [firstTwo, setFirstTwo] = useState([]);
   const [isLastPlayer, setIsLastPlayer ] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -42,6 +42,7 @@ export default function SelectRole({ roomId, playerID, level, onMessage }) {
       selectedLocation,
     });
     try {
+      setConfirmedRole(selectedRole);
       // 先呼叫 selectRole 更新自己角色
       const selectRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/selectRole`, {
         method: "POST",
@@ -61,12 +62,6 @@ export default function SelectRole({ roomId, playerID, level, onMessage }) {
     } catch (err) {
       console.error(err);
     }
-
-    onMessage({
-      sender: "系統",
-      text: `玩家 ${playerID} : 我看到 ${selectedSayRole} 走到了 ${selectedLocation}`,
-      type: "system",
-    });
   };
 
   return (

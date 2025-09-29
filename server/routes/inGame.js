@@ -131,7 +131,7 @@ router.post("/:id/nextPlayer", (req, res) => {
   if (nextLocation === "guestroom") {
     console.log(`Room ${id} 遊戲階段一結束，進入投票環節`);
     room.currPlayerID = -1;
-    req.broadcast(id, { type: "voting", ...room.locationResult });
+    req.broadcast(id, { type: "voting", ...room });
   }
   else {
     req.broadcast(id, { type: "nextTurn", ...room });
