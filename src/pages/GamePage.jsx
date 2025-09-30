@@ -1,10 +1,11 @@
 import SelectRole from "../components/SelectRole";
 import ChatBox from "../components/ChatBox";
+import StepTimer from "../components/Timer";
 import ROLE_CONFIG from "../config/role_intro.json";
 import ZHROLE_CONFIG from "../config/zhrole.json";
 import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 
-import React, { useMemo, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import CONFIG from "../config/config.json";
 import "./GamePage.css";
@@ -94,87 +95,99 @@ export default function GamePage() {
   };
 
   return (
-    <div className="board-container">
-      {/* 上方玩家區域 */}
-      <div className="player-row">
-        {room.players.map((p) => (
-          <div
-            key={p.id}
-            className={`rect player-rect ${p.id === playerID ? "self-player" : ""}
-            ${p.id === currentTurn ? "active-turn" : ""} 
-            ${(selectedTarget === p.id && currentTurn === -1) ? "loc-selected" : ""}`}
-            style={{
-              backgroundImage: players?.[p.id]?.location
-              ? `url(/location/${players[p.id].location}.png)`
-              : "none",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-            onClick={() => handleRectClick(p)}
-          >
-            <span className="player-name">{p.name}</span>
+    <div className="gamepage">
+      <div className="board-container">
+        {currentTurn === playerID && (
+          <div className="select-role-timer">
+            <StepTimer
+              duration={60}
+              onTimeout={() => {
+                console.log("時間到，自動結束這一步");
+              }}
+            />
           </div>
-        ))}
-      </div>
-
-      {/* 下方兩個額外長方形 */}
-      <div className="extra-row">
-        <div className="two-loc">
-          <div className={`rect ${(selectedTarget === "neutral" && currentTurn === -1) ? "loc-selected" : ""}`} 
-          id="neutral" 
-          onClick={() => handleRectClick({"id": "neutral"})}></div>
-          <div className={`rect ${(selectedTarget === "execute" && currentTurn === -1) ? "loc-selected" : ""}`}
-          id="execute" 
-          onClick={() => handleRectClick({"id": "execute"})}>
-            <span className={`${currentTurn === -1 ? "" : "hidden"} player-name`}>棄票</span>
-          </div>
-        </div>
-        <button className={`confirm-btn ${currentTurn === -1 ? "" : "hidden"}`} 
-        disabled={!selectedTarget}>確認投票</button>
-      </div>
-
-      <div className="player-UI">
-        <div className={"ui-layout"}>
-            <div className="select-role-wrapper"
-            style={{
-              width: currentTurn === playerID ? "70%" : "51%", // 寬度切換
-            }}
+        )}
+        {/* 上方玩家區域 */}
+        <div className="player-row">
+          {room.players.map((p) => (
+            <div
+              key={p.id}
+              className={`rect player-rect ${p.id === playerID ? "self-player" : ""}
+              ${p.id === currentTurn ? "active-turn" : ""} 
+              ${(selectedTarget === p.id && currentTurn === -1) ? "loc-selected" : ""}`}
+              style={{
+                backgroundImage: players?.[p.id]?.location
+                ? `url(/location/${players[p.id].location}.png)`
+                : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              onClick={() => handleRectClick(p)}
             >
-              {currentTurn !== playerID && !confirmedRole && players &&(
-                <div className="waiting-turn">
-                  <h3>現在輪到：{players[currentTurn]?.name}</h3>
-                </div>
-              )}
-
-              {currentTurn === playerID && (
-                <SelectRole
-                  roomId={id}
-                  playerID={playerID}
-                  level={room.gameLevel}
-                  setConfirmedRole={setConfirmedRole}
-                />
-              )}
-
-              {confirmedRole && (
-                <div className="confirmed-role">
-                  <h3>你選擇的是：{ZHROLE_CONFIG[confirmedRole]}</h3>
-                  <img
-                    src={`/roles/${confirmedRole}.png`}
-                    alt={ZHROLE_CONFIG[confirmedRole]}
-                    className="role-image"
-                  />
-                  <p className="role-description">
-                    {ROLE_CONFIG[confirmedRole]}
-                  </p>
-                </div>
-              )}
+              <span className="player-name">{p.name}</span>
             </div>
-          <div className="chatbox-wrapper"
-          style={{
-              width: currentTurn === playerID ? "30%" : "49%", // 寬度切換
-            }}
-          >
-            <ChatBox messages={messages} />
+          ))}
+        </div>
+
+        {/* 下方兩個額外長方形 */}
+        <div className="extra-row">
+          <div className="two-loc">
+            <div className={`rect ${(selectedTarget === "neutral" && currentTurn === -1) ? "loc-selected" : ""}`} 
+            id="neutral" 
+            onClick={() => handleRectClick({"id": "neutral"})}></div>
+            <div className={`rect ${(selectedTarget === "execute" && currentTurn === -1) ? "loc-selected" : ""}`}
+            id="execute" 
+            onClick={() => handleRectClick({"id": "execute"})}>
+              <span className={`${currentTurn === -1 ? "" : "hidden"} player-name`}>棄票</span>
+            </div>
+          </div>
+          <button className={`confirm-btn ${currentTurn === -1 ? "" : "hidden"}`} 
+          disabled={!selectedTarget}>確認投票</button>
+        </div>
+
+        <div className="player-UI">
+          <div className={"ui-layout"}>
+              <div className="select-role-wrapper"
+              style={{
+                width: currentTurn === playerID ? "70%" : "51%", // 寬度切換
+              }}
+              >
+                {currentTurn !== playerID && !confirmedRole && players &&(
+                  <div className="waiting-turn">
+                    <h3>現在輪到：{players[currentTurn]?.name}</h3>
+                  </div>
+                )}
+
+                {currentTurn === playerID && (
+                  <SelectRole
+                    roomId={id}
+                    playerID={playerID}
+                    level={room.gameLevel}
+                    setConfirmedRole={setConfirmedRole}
+                  />
+                )}
+
+                {confirmedRole && (
+                  <div className="confirmed-role">
+                    <h3>你選擇的是：{ZHROLE_CONFIG[confirmedRole]}</h3>
+                    <img
+                      src={`/roles/${confirmedRole}.png`}
+                      alt={ZHROLE_CONFIG[confirmedRole]}
+                      className="role-image"
+                    />
+                    <p className="role-description">
+                      {ROLE_CONFIG[confirmedRole]}
+                    </p>
+                  </div>
+                )}
+              </div>
+            <div className="chatbox-wrapper"
+            style={{
+                width: currentTurn === playerID ? "30%" : "49%", // 寬度切換
+              }}
+            >
+              <ChatBox messages={messages} />
+            </div>
           </div>
         </div>
       </div>

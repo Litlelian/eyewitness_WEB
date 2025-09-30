@@ -1,0 +1,27 @@
+.step-timer {
+  position: relative;
+  display: inline-block;
+}
+
+.progress-ring {
+  transform: rotate(90deg);
+  transform-origin: 50% 50%;
+  display: block;
+}
+
+.progress-ring__circle {
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.08s linear, stroke 0.25s linear;
+}
+
+/* 中心數字 */
+.step-timer__center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 1.5rem;
+  pointer-events: none;
+  color: #222;
+}
