@@ -94,15 +94,48 @@ export default function GamePage() {
     setSelectedTarget(target.id);
   };
 
+  const autoSelectRole = async() => {
+    if (confirmedRole) {
+      console.log(confirmedRole);
+      return;
+    }
+    try{
+      const getResponse = await fetch(`${CONFIG["host"]}/api/game/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const getData = await getResponse.json();
+      setConfirmedRole(getData.order.order[0]);
+      // 先呼叫 selectRole 更新自己角色
+      const selectRes = await fetch(`${CONFIG["host"]}/api/game/${id}/selectRole`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: getData.order.order[0] }),
+      });
+      if (!selectRes.ok) throw new Error("selectRole API 失敗");
+
+      // 再呼叫 nextPlayer 指定下一位玩家和地點
+      const nextRes = await fetch(`${CONFIG["host"]}/api/game/${id}/nextPlayer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ saidRole: getData.order.order[1], nextLocation: getData.availableLocations.length === 0 ? "guestroom" : getData.availableLocations[0] }),
+      });
+      if (!nextRes.ok) throw new Error("nextPlayer API 失敗");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
     <div className="gamepage">
       <div className="board-container">
-        {currentTurn === playerID && (
+        {currentTurn === playerID && !confirmedRole && (
           <div className="select-role-timer">
             <StepTimer
               duration={60}
               onTimeout={() => {
-                console.log("時間到，自動結束這一步");
+                console.log("時間到，自動選擇");
+                autoSelectRole();
               }}
             />
           </div>

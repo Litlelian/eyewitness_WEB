@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Timer.css";
 
-export default function StepTimer({ duration = 60, onTimeout, size = 120 }) {
+export default function StepTimer({ duration, onTimeout, size = 120 }) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
   useEffect(() => {
