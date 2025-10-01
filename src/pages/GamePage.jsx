@@ -1,13 +1,13 @@
 import SelectRole from "../components/SelectRole";
 import ChatBox from "../components/ChatBox";
 import StepTimer from "../components/Timer";
+import CONFIG from "../config/config.json";
 import ROLE_CONFIG from "../config/role_intro.json";
 import ZHROLE_CONFIG from "../config/zhrole.json";
 import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import CONFIG from "../config/config.json";
 import "./GamePage.css";
 
 export default function GamePage() {
@@ -18,6 +18,8 @@ export default function GamePage() {
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [players, setPlayers] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [notify, setNotify] = useState(null);
+  const [hasVote, setHasVote] = useState(false);
 
   const hasJoinedRef = useRef(false);
   const wsRef = useRef(null);
@@ -77,6 +79,32 @@ export default function GamePage() {
           }
           setMessages((prev) => [message, ...prev]);
         }
+        if (data.type === "settlement") {
+          const judgement = data.finalResult;
+          let camp = judgement === 3 ? "壞人" : (judgement === 2 ? "炸彈客" : "好人");
+          const message = {
+            id: Date.now(),
+            "type": "system",
+            "sender": "遊戲結束",
+            "text": `${camp}陣營獲得勝利!!!`
+          }
+          setMessages((prev) => [message, ...prev]);
+          console.log(confirmedRole);
+          if (["killer", "accomplice"].includes(confirmedRole)) {
+            if (judgement === 1) setNotify("你獲得了無期徒刑");
+            else if (judgement === 2) setNotify("你消失在了爆炸的火光中...");
+            else setNotify("惡行易施，你勝利了!!!");
+          }
+          else if (confirmedRole === "bomber") {
+            if (judgement === 2) setNotify("藝術就是爆炸!哈哈哈哈哈哈!!!");
+            else setNotify("不懂得浪漫的傢伙...");
+          }
+          else {
+            if (judgement === 1) setNotify("正義必得伸張，你成功抓到壞人了!!!");
+            else if (judgement === 2) setNotify("你消失在了爆炸的火光中...");
+            else setNotify("兇手仍逍遙法外...");
+          }
+        }
       };
 
       ws.onclose = () => {
@@ -90,7 +118,6 @@ export default function GamePage() {
   }, [room.id, playerID]);
 
   const handleRectClick = (target) => {
-    console.log(target);
     setSelectedTarget(target.id);
   };
 
@@ -126,8 +153,31 @@ export default function GamePage() {
     }
   }
 
+  const clickToVote = async() => {
+    setHasVote(true);
+    if (selectedTarget === "execute") console.log("你棄票了:(");
+    else if (selectedTarget === "neutral") console.log("你投給了客房");
+    else console.log(`你投給了在${players[selectedTarget].location} 的 ${players[selectedTarget].name}`);
+
+    try {
+      const voteRes = await fetch(`${CONFIG["host"]}/api/game/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ votedID: selectedTarget, playerID: playerID }),
+      });
+      if (!voteRes.ok) throw new Error("vote API 失敗");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
     <div className="gamepage">
+      {(notify != null) && (
+        <div className="victory-overlay">
+          {notify}
+        </div>
+      )}
       <div className="board-container">
         {currentTurn === playerID && !confirmedRole && (
           <div className="select-role-timer">
@@ -136,6 +186,20 @@ export default function GamePage() {
               onTimeout={() => {
                 console.log("時間到，自動選擇");
                 autoSelectRole();
+              }}
+            />
+          </div>
+        )}
+        {(currentTurn === -1) && (!notify) && (
+          <div className="vote-timer">
+            <StepTimer
+              duration={300}
+              onTimeout={() => {
+                if (!hasVote) {
+                  console.log("時間到，自動棄票");
+                  setSelectedTarget("execute");
+                  clickToVote();
+                }
               }}
             />
           </div>
@@ -175,7 +239,8 @@ export default function GamePage() {
             </div>
           </div>
           <button className={`confirm-btn ${currentTurn === -1 ? "" : "hidden"}`} 
-          disabled={!selectedTarget}>確認投票</button>
+          disabled={!selectedTarget || hasVote}
+          onClick={() => clickToVote()}>確認投票</button>
         </div>
 
         <div className="player-UI">

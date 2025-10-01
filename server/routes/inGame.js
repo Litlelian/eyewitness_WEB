@@ -1,6 +1,6 @@
 // server/routes/inGame.js
 import express from "express";
-import { assignLocations, shuffle } from "../../src/game/game.js"
+import { assignLocations, shuffle, judge } from "../../src/game/game.js"
 const router = express.Router();
 
 const rooms = {};
@@ -33,7 +33,7 @@ router.post("/:id/createRoom", (req, res) => {
 	console.log(`建立遊戲房間 ${id}`);
 
 	// 初始化房間資料結構
-  rooms[id] = {"players": {}, "currPlayerID": null};
+  rooms[id] = {"players": {}, "currPlayerID": null, "vote": {"pid": [], "vote": []}};
   players.forEach((p) => {
 		rooms[id]["players"][p.id] = {
 			name: p.name,
@@ -112,9 +112,9 @@ router.post("/:id/nextPlayer", (req, res) => {
   if (nextLocation === "guestroom") {
     room.locationResult = {};
     Object.keys(room.players).forEach((pid) => {
-      room.locationResult[room.players[pid].location] = room.players[pid].role;
+      room.locationResult[pid] = room.players[pid].role;
     });
-    room.locationResult["guestroom"] = room.order.order[0];
+    room.locationResult["neutral"] = room.order.order[0];
   }
 
   req.broadcast(id, { type: "chatMessage", playerName: `${room.players[room.currPlayerID].name}`, saidRole: saidRole, nextLocation: nextLocation});
@@ -138,6 +138,33 @@ router.post("/:id/nextPlayer", (req, res) => {
   } 
 
   return res.json(room);
+});
+
+router.post("/:id/vote", (req, res) => {
+  const { id } = req.params;
+  const { votedID, playerID } = req.body;
+
+  if (!id || !votedID) {
+    return res.status(400).json({ error: "缺少 room id 或 votedID 參數" });
+  }
+
+  const room = rooms[id];
+  room.vote.pid.push(playerID);
+  room.vote.vote.push(votedID);
+  if (room.players[playerID].role === "businessman") {
+    room.vote.pid.push(playerID);
+    room.vote.vote.push(votedID);
+  }
+
+  const ifBusinessman = Object.values(room.players).some(player => player.role === "businessman") ? 1 : 0;
+  const finished = room.vote.vote.length === (Object.keys(room.players).length + ifBusinessman);
+
+  if (finished) {
+    const finalResult = judge(room.players, room.locationResult, room.vote);
+    req.broadcast(id, { type: "settlement", finalResult: finalResult });
+  }
+
+  return res.json({finished: finished});
 });
 
 // 將 router export

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import CONFIG from "../config/config.json";
 import Lobby from "../components/Lobby";
 
 export default function LobbyPage() {
@@ -28,7 +29,7 @@ export default function LobbyPage() {
 
     try {
       // 呼叫後端 API 檢查房間狀態
-      const res = await fetch(`http://localhost:8001/api/rooms/${id}`);
+      const res = await fetch(`${CONFIG["host"]}/api/rooms/${id}`);
       if (!res.ok) throw new Error("伺服器錯誤");
       const data = await res.json();
 
