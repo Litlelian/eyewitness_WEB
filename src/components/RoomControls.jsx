@@ -22,7 +22,12 @@ const RoomControls = ({
               onChange={(e) => onChangeLevel(Number(e.target.value))}
               className="control-select"
             >
-              {[...Array(8)].map((_, i) => (
+              {/* {[...Array(8)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  等級 {i + 1}
+                </option>
+              ))} */}
+              {[...Array(9)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
                   等級 {i + 1}
                 </option>

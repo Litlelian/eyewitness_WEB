@@ -1,11 +1,4 @@
 {
-  "0": {
-    "range": [3],
-    "roles": ["killer", "accomplice", "bomber", "lawyer", "businessman", "detective", "butler", "guest"],
-    "distribution": {
-      "3": { "killer": 1, "lawyer": 1 , "detective": 1, "butler": 1}
-    }
-  },
   "1": {
     "range": [3, 4],
     "roles": ["killer", "guest"],
@@ -78,5 +71,13 @@
       "6": { "killer": 1, "accomplice": 1, "bomber": 1, "lawyer": 1, "businessman": 1, "detective": 1, "butler": 1, "guest": 4 }
     },
     "special": "特殊規則 : 遊戲前先把殺人魔排除，隨機抽出兩張角色牌蓋在鍋爐室旁邊，並再將兩張角色牌移出遊戲。"
+  },
+  "9": {
+    "debug": "only for test",
+    "range": [3],
+    "roles": ["killer", "accomplice", "bomber", "lawyer", "businessman", "detective", "butler", "guest"],
+    "distribution": {
+      "3": { "killer": 1, "lawyer": 1 , "bomber": 1, "businessman": 1}
+    }
   }
 }

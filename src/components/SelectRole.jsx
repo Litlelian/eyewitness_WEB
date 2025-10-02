@@ -24,6 +24,7 @@ export default function SelectRole({ roomId, playerID, level, setConfirmedRole }
         });
         if (!res.ok) throw new Error("Failed to fetch room");
         const data = await res.json();
+        console.log(data);
         setFirstTwo(data.order.order.slice(0, 2));
         setIsLastPlayer(data.availableLocations.length === 0);
         setAvailableLocations(data.availableLocations)

@@ -6,8 +6,8 @@ import ROLE_CONFIG from "../config/role_intro.json";
 import ZHROLE_CONFIG from "../config/zhrole.json";
 import ZHLOCATION_CONFIG from "../config/zhlocation.json";
 
-import React, { use, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./GamePage.css";
 
 export default function GamePage() {
@@ -20,6 +20,8 @@ export default function GamePage() {
   const [messages, setMessages] = useState([]);
   const [notify, setNotify] = useState(null);
   const [hasVote, setHasVote] = useState(false);
+  
+  const navigate = useNavigate();
 
   const confirmedRoleRef = useRef(null);
   const hasJoinedRef = useRef(false);
@@ -91,18 +93,50 @@ export default function GamePage() {
           }
           setMessages((prev) => [message, ...prev]);
           if (["killer", "accomplice"].includes(confirmedRoleRef.current)) {
-            if (judgement === 1) setNotify("你獲得了無期徒刑");
-            else if (judgement === 2) setNotify("你消失在了爆炸的火光中...");
-            else setNotify("惡行易施，你勝利了!!!");
+            if (judgement === 1) {
+              setNotify("你獲得了無期徒刑");
+              const audio = new Audio("/sounds/defeat.mp3");
+              audio.play();
+            }
+            else if (judgement === 2) {
+              setNotify("你消失在了爆炸的火光中...");
+              const audio = new Audio("/sounds/boom.mp3");
+              audio.play();
+            }
+            else {
+              setNotify("惡行易施，你勝利了!!!");
+              const audio = new Audio("/sounds/victory.mp3");
+              audio.play();
+            }
           }
           else if (confirmedRoleRef.current === "bomber") {
-            if (judgement === 2) setNotify("藝術就是爆炸!哈哈哈哈哈哈!!!");
-            else setNotify("不懂得浪漫的傢伙...");
+            if (judgement === 2) {
+              setNotify("藝術就是爆炸!\n哈哈哈哈哈哈!!!");
+              const audio = new Audio("/sounds/boom.mp3");
+              audio.play();
+            }
+            else {
+              setNotify("不懂得浪漫的傢伙...");
+              const audio = new Audio("/sounds/defeat.mp3");
+              audio.play();
+            }
           }
           else {
-            if (judgement === 1) setNotify("正義必得伸張，你成功抓到壞人了!!!");
-            else if (judgement === 2) setNotify("你消失在了爆炸的火光中...");
-            else setNotify("兇手仍逍遙法外...");
+            if (judgement === 1) {
+              setNotify("正義必得伸張\n你成功抓到壞人了!!!");
+              const audio = new Audio("/sounds/victory.mp3");
+              audio.play();
+            }
+            else if (judgement === 2) {
+              setNotify("你消失在了爆炸的火光中...");
+              const audio = new Audio("/sounds/boom.mp3");
+              audio.play();
+            }
+            else {
+              setNotify("兇手仍逍遙法外...");
+              const audio = new Audio("/sounds/defeat.mp3");
+              audio.play();
+            }
           }
         }
       };
@@ -176,11 +210,33 @@ export default function GamePage() {
     }
   }
 
+  const clickToRestart = async() => {
+    try {
+      // 刪除room.js的房間
+      await fetch(`${CONFIG["host"]}/api/rooms/${id}/startGame`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameStart: false }),
+      });
+      // 刪除inGame.js的房間
+      await fetch(`${CONFIG["host"]}/api/game/${id}/delRoom`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    navigate(`/room/${id}/`, { state: { playerName: players[playerID].name } });
+  }
+
   return (
     <div className="gamepage">
       {(notify != null) && (
         <div className="victory-overlay">
-          {notify}
+          <div className="victory-overlay-box">
+            <span>{notify}</span>
+            <button onClick={clickToRestart}>返回大廳</button>
+          </div>
         </div>
       )}
       <div className="board-container">

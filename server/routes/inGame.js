@@ -167,5 +167,16 @@ router.post("/:id/vote", (req, res) => {
   return res.json({finished: finished});
 });
 
+router.delete("/:id/delRoom", (req, res) => {
+  const { id } = req.params;
+
+  if (!rooms[id]) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  delete rooms[id]; // 刪除房間
+  return res.json({ message: `Room ${id} 刪除` });
+});
+
 // 將 router export
 export default router;

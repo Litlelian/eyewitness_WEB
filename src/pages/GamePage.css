@@ -15,6 +15,8 @@
   position: fixed;        /* 固定在畫面中間 */
   top: 50%;
   left: 50%;
+  height: 30vh;
+  width: 65vw;
   transform: translate(-50%, -50%);
   font-size: 3rem;
   font-weight: bold;
@@ -24,6 +26,25 @@
   border-radius: 1rem;
   z-index: 9999;          /* 保證在最上層 */
   text-align: center;
+}
+
+.victory-overlay-box {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.victory-overlay-box button {
+  background: linear-gradient(135deg, #f7b733, #fc4a1a);
+  border: none;
+  border-radius: 12px;
+  padding: 6px 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .select-role-timer {

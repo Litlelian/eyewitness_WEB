@@ -45,7 +45,14 @@ wss.on("connection", (ws) => {
     const data = JSON.parse(msg);
     if (data.type === "joinRoom") {
       const { roomID, playerID } = data;
-      // 之後會寫遊戲結束返回房間的方法
+      // 刪除 GamePage 留下的 Socket
+      if (rooms[roomID]) {
+        for (const clientWs of rooms[roomID]) {
+          if (clientWs.gameState === "game") {
+            rooms[roomID].delete(clientWs);
+          }
+        }
+      }
       ws.roomID = roomID;
       ws.playerID = playerID;
       ws.gameState = "room";

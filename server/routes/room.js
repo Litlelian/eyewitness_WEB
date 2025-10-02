@@ -20,7 +20,7 @@ router.get("/:id", (req, res) => {
     maxPlayers: room?.maxPlayers || 3,
     hostSlot: room?.hostSlot || null,
     gameLevel: room?.gameLevel || 1,
-    gamePlaying: false,
+    gamePlaying: room?.gamePlaying || false,
   });
 });
 
@@ -215,11 +215,16 @@ router.post("/:id/startGame", (req, res) => {
   const room = rooms[id];
   if (!room) return res.status(404).json({ error: "房間不存在" });
 
-  room.gamePlaying = gameStart;
+  if (gameStart) req.broadcast(id, { type: "gameStart", ...room });
+  
+  if (!gameStart && room.gamePlaying) {
+    console.log(`刪除${id}房`);
+    delete rooms[id];
+  }
 
-  req.broadcast(id, { type: "gameStart", ...room });
+  if (room) room.gamePlaying = gameStart;
 
-  res.json(room);
+  res.json(gameStart);
 });
 
 // 將 router export
