@@ -21,6 +21,7 @@ export default function GamePage() {
   const [notify, setNotify] = useState(null);
   const [hasVote, setHasVote] = useState(false);
 
+  const confirmedRoleRef = useRef(null);
   const hasJoinedRef = useRef(false);
   const wsRef = useRef(null);
 
@@ -89,13 +90,12 @@ export default function GamePage() {
             "text": `${camp}陣營獲得勝利!!!`
           }
           setMessages((prev) => [message, ...prev]);
-          console.log(confirmedRole);
-          if (["killer", "accomplice"].includes(confirmedRole)) {
+          if (["killer", "accomplice"].includes(confirmedRoleRef.current)) {
             if (judgement === 1) setNotify("你獲得了無期徒刑");
             else if (judgement === 2) setNotify("你消失在了爆炸的火光中...");
             else setNotify("惡行易施，你勝利了!!!");
           }
-          else if (confirmedRole === "bomber") {
+          else if (confirmedRoleRef.current === "bomber") {
             if (judgement === 2) setNotify("藝術就是爆炸!哈哈哈哈哈哈!!!");
             else setNotify("不懂得浪漫的傢伙...");
           }
@@ -117,6 +117,11 @@ export default function GamePage() {
     };
   }, [room.id, playerID]);
 
+  const updateConfirmedRole = (role) => {
+    setConfirmedRole(role);           // 更新 state → 觸發 UI 更新
+    confirmedRoleRef.current = role;  // 更新 ref → 保證回調拿到最新值
+  };
+
   const handleRectClick = (target) => {
     setSelectedTarget(target.id);
   };
@@ -132,7 +137,7 @@ export default function GamePage() {
         headers: { "Content-Type": "application/json" },
       });
       const getData = await getResponse.json();
-      setConfirmedRole(getData.order.order[0]);
+      updateConfirmedRole(getData.order.order[0]);
       // 先呼叫 selectRole 更新自己角色
       const selectRes = await fetch(`${CONFIG["host"]}/api/game/${id}/selectRole`, {
         method: "POST",
@@ -261,7 +266,7 @@ export default function GamePage() {
                     roomId={id}
                     playerID={playerID}
                     level={room.gameLevel}
-                    setConfirmedRole={setConfirmedRole}
+                    setConfirmedRole={updateConfirmedRole}
                   />
                 )}
 

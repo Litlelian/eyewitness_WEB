@@ -73,11 +73,8 @@ export function judge(players, locationResult, voteResult) {
     maxC = Math.max(maxC, countMap[item]);
   }
   const deadPlayerID = Object.keys(countMap).filter(key => countMap[key] === maxC);
-
-  console.log(deadPlayerID);
   
   for (const deadpid of deadPlayerID) {
-    console.log(players[deadpid]);
     if (deadpid != "execute") {
       if (locationResult[deadpid] === "killer") return 1;  // case 1: 殺手被抓，好人勝利
       if (locationResult[deadpid] === "bomber") return 2;  // case 2: 炸彈客被抓，炸彈客勝利
