@@ -149,6 +149,7 @@ router.post("/:id/vote", (req, res) => {
   }
 
   const room = rooms[id];
+
   room.vote.pid.push(playerID);
   room.vote.vote.push(votedID);
   if (room.players[playerID].role === "businessman") {
@@ -165,6 +166,38 @@ router.post("/:id/vote", (req, res) => {
   }
 
   return res.json({finished: finished});
+});
+
+router.post("/:id/skill/butler", (req, res) => {
+  const { id } = req.params;
+
+  if (!rooms[id]) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  req.broadcast(id, { type: "skillButler", keep: rooms[id].order.keep })
+
+  return res.json({keep: rooms[id].order.keep});
+});
+
+router.post("/:id/skill/detective", (req, res) => {
+  const { id } = req.params;
+  const { votedID, playerID } = req.body;
+
+  const room = rooms[id];
+
+  if (!rooms[id] || !votedID) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  if (votedID != "execute") {
+    req.broadcast(id, { type: "skillDetective", votedID: votedID })
+    const finalResult = judge(room.players, room.locationResult, {"pid": [playerID], "vote": [votedID]});
+    
+    req.broadcast(id, { type: "settlement", finalResult: finalResult });
+  }
+
+  return res.json({votedID: votedID});
 });
 
 router.delete("/:id/delRoom", (req, res) => {

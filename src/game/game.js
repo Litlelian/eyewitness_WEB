@@ -40,6 +40,11 @@ export function shuffle(level, maxPlayer) {
     }
   }
 
+  // for test
+  if (level == 9){
+    keep = ["guest", "lawyer"];
+  }
+
   order.push("killer");
 
   for (let i = order.length - 1; i > 0; i--) {
@@ -76,6 +81,7 @@ export function judge(players, locationResult, voteResult) {
   
   for (const deadpid of deadPlayerID) {
     if (deadpid != "execute") {
+      console.log(locationResult[deadpid]);
       if (locationResult[deadpid] === "killer") return 1;  // case 1: 殺手被抓，好人勝利
       if (locationResult[deadpid] === "bomber") return 2;  // case 2: 炸彈客被抓，炸彈客勝利
     }

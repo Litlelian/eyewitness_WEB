@@ -82,6 +82,26 @@ export default function GamePage() {
           }
           setMessages((prev) => [message, ...prev]);
         }
+        if (data.type === "skillButler") {
+          const keep = data.keep;
+          const message = {
+            id: Date.now(),
+            "type": "system",
+            "sender": "管家發動技能",
+            "text": `${ZHROLE_CONFIG[keep[0]]} 與 ${ZHROLE_CONFIG[keep[1]]} 已先行離去`
+          }
+          setMessages((prev) => [message, ...prev]);
+        }
+        if (data.type === "skillDetective") {
+          const votedID = data.votedID;
+          const message = {
+            id: Date.now(),
+            "type": "system",
+            "sender": "偵探發動技能",
+            "text": `接露了 ${votedID === "neutral" ? "客房" : players[votedID].location} 的職業為 ${players[votedID].role}`
+          }
+          setMessages((prev) => [message, ...prev]);
+        }
         if (data.type === "settlement") {
           const judgement = data.finalResult;
           let camp = judgement === 3 ? "壞人" : (judgement === 2 ? "炸彈客" : "好人");
@@ -111,7 +131,7 @@ export default function GamePage() {
           }
           else if (confirmedRoleRef.current === "bomber") {
             if (judgement === 2) {
-              setNotify("藝術就是爆炸!\n哈哈哈哈哈哈!!!");
+              setNotify("藝術就是爆炸! 哈哈哈哈哈哈!!!");
               const audio = new Audio("/sounds/boom.mp3");
               audio.play();
             }
@@ -123,7 +143,7 @@ export default function GamePage() {
           }
           else {
             if (judgement === 1) {
-              setNotify("正義必得伸張\n你成功抓到壞人了!!!");
+              setNotify("正義必得伸張 你成功抓到壞人了!!!");
               const audio = new Audio("/sounds/victory.mp3");
               audio.play();
             }
@@ -157,6 +177,7 @@ export default function GamePage() {
   };
 
   const handleRectClick = (target) => {
+    if (hasVote) return;
     setSelectedTarget(target.id);
   };
 
@@ -229,12 +250,53 @@ export default function GamePage() {
     navigate(`/room/${id}/`, { state: { playerName: players[playerID].name } });
   }
 
+  const useSkill = async(skillRole) => {
+    if (skillRole === "detective") {
+      try {
+        if (selectedTarget === "execute"){
+          alert("不可以使用技能投棄票!!!");
+        }
+        else {
+          setHasVote(true);
+          const skillRes = await fetch(`${CONFIG["host"]}/api/game/${id}/skill/detective`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ votedID: selectedTarget, playerID: playerID }),
+          });
+          if (!skillRes.ok) throw new Error("偵探技能 API 失敗");
+        } 
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    if (skillRole === "butler") {
+      try {
+        setHasVote(true);
+        setSelectedTarget("execute");
+        const voteRes = await fetch(`${CONFIG["host"]}/api/game/${id}/vote`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ votedID: "execute", playerID: playerID }),
+        });
+        if (!voteRes.ok) throw new Error("vote API 失敗");
+        const skillRes = await fetch(`${CONFIG["host"]}/api/game/${id}/skill/butler`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ votedID: selectedTarget, playerID: playerID }),
+        });
+        if (!skillRes.ok) throw new Error("管家技能 API 失敗");
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
   return (
     <div className="gamepage">
       {(notify != null) && (
         <div className="victory-overlay">
           <div className="victory-overlay-box">
-            <span>{notify}</span>
+            <div>{notify}</div>
             <button onClick={clickToRestart}>返回大廳</button>
           </div>
         </div>
@@ -337,6 +399,16 @@ export default function GamePage() {
                     <p className="role-description">
                       {ROLE_CONFIG[confirmedRole]}
                     </p>
+                    {confirmedRole === "detective" && (
+                      <button disabled={hasVote || notify || !selectedTarget} onClick={() => useSkill(confirmedRole)}>
+                        發動技能
+                      </button>
+                    )}
+                    {confirmedRole === "butler" && (
+                      <button disabled={hasVote || notify} onClick={() => useSkill(confirmedRole)}>
+                        發動技能
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
