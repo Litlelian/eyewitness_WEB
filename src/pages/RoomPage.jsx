@@ -9,9 +9,9 @@ import "./RoomPage.css";
 
 export default function RoomPage() {
   const { id } = useParams(); // 從 URL 獲取房間 ID
-  const location = useLocation(); // 從 navigate 獲取 state
+  const locationX = useLocation(); // 從 navigate 獲取 state
   const navigate = useNavigate();
-  const playerName = location.state?.playerName?.trim() || "匿名玩家"; // 傳入的玩家名稱
+  const playerName = locationX.state?.playerName?.trim() || "匿名玩家"; // 傳入的玩家名稱
   
   const [playerID, setPlayerID] = useState(null); // 當前玩家 ID
   const [playerSlot, setPlayerSlot] = useState(null); // 當前玩家位置
@@ -46,14 +46,14 @@ export default function RoomPage() {
         hasJoinedRef.current = true;
 
         // 嘗試獲取房間資訊
-        const getResponse = await fetch(`${CONFIG["host"]}/api/rooms/${id}`, {
+        const getResponse = await fetch(`/api/rooms/${id}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
         const getData = await getResponse.json();
 
         // 無論房間是否存在，直接嘗試加入玩家
-        const postResponse = await fetch(`${CONFIG["host"]}/api/rooms/${id}/addPlayers`, {
+        const postResponse = await fetch(`/api/rooms/${id}/addPlayers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -82,7 +82,7 @@ export default function RoomPage() {
         setPlayerSlot(mySlotObj?.slot ?? null);
 
         // === WebSocket 連線 ===
-        const ws = new WebSocket("ws" + CONFIG["host"].slice(4));
+        const ws = new WebSocket(`${location.origin.replace(/^http/, 'ws')}/ws`);
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -147,7 +147,7 @@ export default function RoomPage() {
     );
 
     if (action === "kick") {
-      await fetch(`${CONFIG["host"]}/api/rooms/${id}/kick`, {
+      await fetch(`/api/rooms/${id}/kick`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerID: targetPlayer.id }),
@@ -155,7 +155,7 @@ export default function RoomPage() {
     }
 
     if (action === "host") {
-      await fetch(`${CONFIG["host"]}/api/rooms/${id}/transferHost`, {
+      await fetch(`/api/rooms/${id}/transferHost`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newHostID: targetPlayer.id }),
@@ -170,7 +170,7 @@ export default function RoomPage() {
       return;
     }
     setMaxPlayers(num);
-    await fetch(`${CONFIG["host"]}/api/rooms/${id}/maxPlayers`, {
+    await fetch(`/api/rooms/${id}/maxPlayers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ maxPlayers: num }),
@@ -180,7 +180,7 @@ export default function RoomPage() {
   // 改變遊戲等級
   const handleChangeLevel = async (newLevel) => {
     setLevel(newLevel);
-    await fetch(`${CONFIG["host"]}/api/rooms/${id}/level`, {
+    await fetch(`/api/rooms/${id}/level`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level: newLevel }),
@@ -201,17 +201,17 @@ export default function RoomPage() {
       alert(`目前玩家數 (${players.length}) 未達最大玩家數 (${maxPlayers})，請房主調整相關設定`);
       return;
     }
-    await fetch(`${CONFIG["host"]}/api/game/${id}/createRoom`, {
+    await fetch(`/api/game/${id}/createRoom`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ players: players }),
     });
-    await fetch(`${CONFIG["host"]}/api/game/${id}/shuffle`, {
+    await fetch(`/api/game/${id}/shuffle`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level: level, maxPlayers: maxPlayers }),
     });
-    await fetch(`${CONFIG["host"]}/api/rooms/${id}/startGame`, {
+    await fetch(`/api/rooms/${id}/startGame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ gameStart: true }),
@@ -221,7 +221,7 @@ export default function RoomPage() {
   // 離開房間
   const handleLeaveRoom = async () => {
     try {
-      await fetch(`${CONFIG["host"]}/api/rooms/${id}/leave`, {
+      await fetch(`/api/rooms/${id}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerID }),

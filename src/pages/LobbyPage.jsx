@@ -29,7 +29,7 @@ export default function LobbyPage() {
 
     try {
       // 呼叫後端 API 檢查房間狀態
-      const res = await fetch(`${CONFIG["host"]}/api/rooms/${id}`);
+      const res = await fetch(`/api/rooms/${id}`);
       if (!res.ok) throw new Error("伺服器錯誤");
       const data = await res.json();
 

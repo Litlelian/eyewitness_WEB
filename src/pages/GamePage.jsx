@@ -37,7 +37,7 @@ export default function GamePage() {
       if (hasJoinedRef.current) return;
       hasJoinedRef.current = true;
       // 取得房間資訊(地點分配、初始玩家等)
-      const getResponse = await fetch(`${CONFIG["host"]}/api/game/${id}`, {
+      const getResponse = await fetch(`/api/game/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -47,7 +47,7 @@ export default function GamePage() {
       setCurrentTurn(getData.currPlayerID);
       
       // 建立 WebSocket 連線
-      const ws = new WebSocket("ws" + CONFIG["host"].slice(4));
+      const ws = new WebSocket(`${location.origin.replace(/^http/, 'ws')}/ws`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -187,14 +187,14 @@ export default function GamePage() {
       return;
     }
     try{
-      const getResponse = await fetch(`${CONFIG["host"]}/api/game/${id}`, {
+      const getResponse = await fetch(`/api/game/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
       const getData = await getResponse.json();
       updateConfirmedRole(getData.order.order[0]);
       // 先呼叫 selectRole 更新自己角色
-      const selectRes = await fetch(`${CONFIG["host"]}/api/game/${id}/selectRole`, {
+      const selectRes = await fetch(`/api/game/${id}/selectRole`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: getData.order.order[0] }),
@@ -202,7 +202,7 @@ export default function GamePage() {
       if (!selectRes.ok) throw new Error("selectRole API 失敗");
 
       // 再呼叫 nextPlayer 指定下一位玩家和地點
-      const nextRes = await fetch(`${CONFIG["host"]}/api/game/${id}/nextPlayer`, {
+      const nextRes = await fetch(`/api/game/${id}/nextPlayer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ saidRole: getData.order.order[1], nextLocation: getData.availableLocations.length === 0 ? "guestroom" : getData.availableLocations[0] }),
@@ -220,7 +220,7 @@ export default function GamePage() {
     else console.log(`你投給了在${players[selectedTarget].location} 的 ${players[selectedTarget].name}`);
 
     try {
-      const voteRes = await fetch(`${CONFIG["host"]}/api/game/${id}/vote`, {
+      const voteRes = await fetch(`/api/game/${id}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ votedID: selectedTarget, playerID: playerID }),
@@ -234,13 +234,13 @@ export default function GamePage() {
   const clickToRestart = async() => {
     try {
       // 刪除room.js的房間
-      await fetch(`${CONFIG["host"]}/api/rooms/${id}/startGame`, {
+      await fetch(`/api/rooms/${id}/startGame`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gameStart: false }),
       });
       // 刪除inGame.js的房間
-      await fetch(`${CONFIG["host"]}/api/game/${id}/delRoom`, {
+      await fetch(`/api/game/${id}/delRoom`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
@@ -258,7 +258,7 @@ export default function GamePage() {
         }
         else {
           setHasVote(true);
-          const skillRes = await fetch(`${CONFIG["host"]}/api/game/${id}/skill/detective`, {
+          const skillRes = await fetch(`/api/game/${id}/skill/detective`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ votedID: selectedTarget, playerID: playerID }),
@@ -273,13 +273,13 @@ export default function GamePage() {
       try {
         setHasVote(true);
         setSelectedTarget("execute");
-        const voteRes = await fetch(`${CONFIG["host"]}/api/game/${id}/vote`, {
+        const voteRes = await fetch(`/api/game/${id}/vote`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ votedID: "execute", playerID: playerID }),
         });
         if (!voteRes.ok) throw new Error("vote API 失敗");
-        const skillRes = await fetch(`${CONFIG["host"]}/api/game/${id}/skill/butler`, {
+        const skillRes = await fetch(`/api/game/${id}/skill/butler`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ votedID: selectedTarget, playerID: playerID }),

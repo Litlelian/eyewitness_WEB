@@ -18,7 +18,7 @@ export default function SelectRole({ roomId, playerID, level, setConfirmedRole }
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const res = await fetch(`${CONFIG["host"]}/api/game/${roomId}`, {
+        const res = await fetch(`/api/game/${roomId}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -45,7 +45,7 @@ export default function SelectRole({ roomId, playerID, level, setConfirmedRole }
     try {
       setConfirmedRole(selectedRole);
       // 先呼叫 selectRole 更新自己角色
-      const selectRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/selectRole`, {
+      const selectRes = await fetch(`/api/game/${roomId}/selectRole`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: selectedRole }),
@@ -53,7 +53,7 @@ export default function SelectRole({ roomId, playerID, level, setConfirmedRole }
       if (!selectRes.ok) throw new Error("selectRole API 失敗");
 
       // 再呼叫 nextPlayer 指定下一位玩家和地點
-      const nextRes = await fetch(`${CONFIG["host"]}/api/game/${roomId}/nextPlayer`, {
+      const nextRes = await fetch(`/api/game/${roomId}/nextPlayer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ saidRole: selectedSayRole, nextLocation: selectedLocation }),

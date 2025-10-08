@@ -20,7 +20,7 @@ apiApp.use(express.json());
 const server = createServer(apiApp);
 
 // 建立 WebSocketServer
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server, path: '/ws' });
 
 // roomID -> Set of WebSocket clients
 const rooms = {};
